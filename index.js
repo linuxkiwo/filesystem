@@ -15,13 +15,12 @@ var EventServer = require('../commonModules/localEvent').Server;
 var win, currentPath, dirList, currentFiles;
 /*Declaración de los metodos que se tengan que emplear fuera*/
 /*Declaración de las funciones globales*/
-var createWin, closeWin, loadFiles;
+var createWin, closeWin, loadFiles, changeDir;
 var external = {};
 
 
 exec('echo $USER', (err, stdout, stderr) => {
     currentPath = `/home/${stdout}/`.replace('\n', '');
-    //loadFiles();
 });
 
 
@@ -41,19 +40,27 @@ createWin = () => {
 closeWin = () => app.quit();
 
 external.loadFiles = loadFiles = (dir = '') => {
-    currentPath = (dir !== '') ? (currentPath + '/' + dir) : currentPath;
+    currentPath = (dir !== '') ? (currentPath + dir[0] + '/') : currentPath;
     currentFiles = {dir: [], fil: []};
     var listDir = fs.readdirSync(currentPath);
     for (let i of listDir){
-        if (i.search(/\.\w/) !== -1)
+        if (i.search(/^\./) !== -1)
             continue;
         else if (fs.lstatSync(`${currentPath}/${i}`).isDirectory())
             currentFiles['dir'].push(i);
         else if (fs.lstatSync(`${currentPath}/${i}`).isFile())
             currentFiles['fil'].push(i);
     }
-    return currentFiles;
-}
+    return [currentFiles];
+};
+
+external.changeDir = changeDir = (name) =>{
+        let path = currentPath.split('/');
+        currentPath = path.slice(0, path.indexOf(name[0])+1).join("/")+'/';
+        return [loadFiles()[0], path.slice(1, path.indexOf(name[0])+1)];
+};
+
+
 var comunication = new EventServer(external);
 
 

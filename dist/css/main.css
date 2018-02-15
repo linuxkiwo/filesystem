@@ -13,7 +13,7 @@ body {
     body ul.topBar li {
       list-style: none;
       font-weight: bold;
-      flex-basis: 0;
+      flex-basis: 1;
       cursor: pointer; }
     body ul.topBar li:hover {
       font-weight: lighter; }
@@ -26,7 +26,8 @@ body {
       list-style: none;
       width: 100%; }
   body main li {
-    list-style: none; }
+    list-style: none;
+    cursor: pointer; }
   body main li.folder {
     color: red; }
   body main li.file {

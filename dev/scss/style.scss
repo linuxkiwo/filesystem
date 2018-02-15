@@ -17,7 +17,7 @@ body{
         li{
             list-style: none;
             font-weight: bold;
-            flex-basis: 0;
+            flex-basis: 1;
             cursor: pointer;
         }
         li:hover {
@@ -37,6 +37,7 @@ body{
     main {
         li{
             list-style: none;
+            cursor: pointer;
         }
         li.folder {
             color: red;
