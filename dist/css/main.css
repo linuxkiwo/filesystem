@@ -1,0 +1,35 @@
+body {
+  font-family: sans-serif; }
+  body * {
+    margin: 0;
+    padding: 0; }
+  body ul.topBar {
+    width: 100%;
+    float: left;
+    border-bottom: 2px solid black;
+    height: 5vh;
+    display: flex;
+    align-items: center; }
+    body ul.topBar li {
+      list-style: none;
+      font-weight: bold;
+      flex-basis: 0;
+      cursor: pointer; }
+    body ul.topBar li:hover {
+      font-weight: lighter; }
+  body ul.frecuentFile {
+    width: 20%;
+    float: left;
+    border-right: 1px solid black;
+    height: 95vh; }
+    body ul.frecuentFile li {
+      list-style: none;
+      width: 100%; }
+  body main li {
+    list-style: none; }
+  body main li.folder {
+    color: red; }
+  body main li.file {
+    color: blue; }
+
+/*# sourceMappingURL=main.css.map */

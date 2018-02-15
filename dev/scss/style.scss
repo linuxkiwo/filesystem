@@ -1,0 +1,48 @@
+$color1: black;
+$menuHeight: 5vh;
+body{
+    font-family: sans-serif;
+
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    ul.topBar {
+        width: 100%;
+        float: left;
+        border-bottom:2px solid $color1;
+        height: $menuHeight;
+        display: flex;
+        align-items: center;
+        li{
+            list-style: none;
+            font-weight: bold;
+            flex-basis: 0;
+            cursor: pointer;
+        }
+        li:hover {
+            font-weight: lighter;
+        }
+    }
+    ul.frecuentFile {
+        width: 20%;
+        float: left;
+        border-right: 1px solid $color1;
+        height: 100 - $menuHeight;
+        li {
+            list-style: none;
+            width: 100%;
+        }
+    }
+    main {
+        li{
+            list-style: none;
+        }
+        li.folder {
+            color: red;
+        }
+        li.file {
+            color: blue;
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "filesystem",
+  "version": "2.0.0",
+  "description": "A file system package that allow you to manage your file and folder by and interface",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "sass dev/scss/* dist/css/main.css"
+  },
+  "author": "lucaselvira96@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "jquery": "^3.3.1"
+  }
+}
