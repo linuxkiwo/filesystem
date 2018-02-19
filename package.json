@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "sass dev/scss/* dist/css/main.css"
+    "build": "sass dev/scss/* dist/css/main.css",
+    "init": "electron ."
   },
   "author": "lucaselvira96@gmail.com",
   "license": "ISC",

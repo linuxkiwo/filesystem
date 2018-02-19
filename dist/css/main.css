@@ -1,5 +1,7 @@
 body {
   font-family: sans-serif; }
+  body img {
+    width: 100%; }
   body * {
     margin: 0;
     padding: 0; }
@@ -25,12 +27,40 @@ body {
     body ul.frecuentFile li {
       list-style: none;
       width: 100%; }
-  body main li {
-    list-style: none;
-    cursor: pointer; }
-  body main li.folder {
-    color: red; }
-  body main li.file {
-    color: blue; }
+  body main {
+    float: left;
+    width: 79.85%;
+    display: inline-block;
+    height: 95vh;
+   /*
+  li.folder {
+      color: red;
+  }
+  li.file {
+      color: blue;
+  }*/ }
+    body main ul.elements {
+      width: 100%;
+      height: 100%; }
+      body main ul.elements li {
+        float: left;
+        width: 16%;
+        max-width: 150px;
+        min-width: 80px;
+        list-style: none;
+        cursor: pointer;
+        transition-duration: 0.5s; }
+        body main ul.elements li p {
+          text-align: center;
+          width: 100%; }
+        body main ul.elements li p.ellipsis {
+          width: 80%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-left: 10%; }
+      body main ul.elements li.moving {
+        position: absolute;
+        transition: none; }
 
 /*# sourceMappingURL=main.css.map */
