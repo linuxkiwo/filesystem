@@ -1,7 +1,7 @@
 'use strict';
 /*Importación de módulos */
 
-const { app, BrowserWindow, globalShortcut } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const fs = require('fs')
 const path = require('path');
 const url = require('url');
@@ -14,7 +14,7 @@ const EventServer = require('../commonModules/localEvent').Server;
 var win, currentPath, dirList, currentFiles;
 /*Declaración de los metodos que se tengan que emplear fuera*/
 /*Declaración de las funciones globales*/
-var createWin, closeWin, loadFiles, changeDir, move;
+var createWin, closeWin, loadFiles, changeDir, move, copy;
 var external = {};
 
 
@@ -25,10 +25,7 @@ exec('echo $USER', (err, stdout, stderr) => {
 
 createWin = () => {
 	win = new BrowserWindow({ width: 800, height: 600, menu: false });
-	globalShortcut.register('CommandOrControl+Y', () => {
-      // Hacer algo cuando se presiona tanto Tecla Command o Control + Y.
-      console.log("algo ha pasado")
-    })
+
 	win.loadURL(url.format({
 		pathname: path.join(__dirname, 'dist/index.html'),
 		protocol: 'file:',
@@ -73,6 +70,19 @@ external.move = move = (paths) => {
 	fs.rename(`${currentPath}${paths[0]}`, `${currentPath}${paths[1]}/${paths[0]}`, (err) => {
 		console.log(err);
 	});
+};
+
+external.copy = copy = (paths) => {
+	/*fs.copy(`${currentPath}${paths[0]}`, `${currentPath}${paths[1]}/${paths[0]}`, (err) => {
+		console.log(err);
+	});*/
+	/*exec(`cp ${currentPath}${paths[0]} ${currentPath}${paths[1]}/${paths[0]}`, (err, stdout, stderr) => {
+		console.log(err);
+		console.log(stdout);
+		console.log(stderr);
+	});*/
+	
+
 }
 
 
