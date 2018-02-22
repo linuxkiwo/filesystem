@@ -54,9 +54,9 @@ external.loadFiles = loadFiles = (dir = '') => {
 	let list = currentFiles,
 		str = '';
 	for (var i in list['dir'])
-		str += `<li class="folder"><img src="media/folder.jpg"><p>${list['dir'][i]}</p></li>`;
+		str += `<li class="folder"><img src="media/folder.jpg" draggable="true"><p>${list['dir'][i]}</p></li>`;
 	for (i in list['fil'])
-		str += `<li class="file"><img src="media/file.jpg"><p>${list['fil'][i]}</p></li>`;
+		str += `<li class="file"><img src="media/file.jpg" draggable="true"><p>${list['fil'][i]}</p></li>`;
 	return [str];
 };
 
@@ -66,22 +66,21 @@ external.changeDir = changeDir = (name) => {
 	return [loadFiles()[0], path.slice(1, path.indexOf(name[0]) + 1)];
 };
 
-external.move = move = (paths) => {
-	fs.rename(`${currentPath}${paths[0]}`, `${currentPath}${paths[1]}/${paths[0]}`, (err) => {
-		console.log(err);
-	});
+external.move = move = (paths) => {	
+	for (let i = 0; i<paths[0].length; i++){		
+		fs.rename(`${currentPath}${paths[0][i]}`, `${currentPath}${paths[1]}/${paths[0][i]}`, (err) => {console.log(err);});
+	}
+
 };
 
 external.copy = copy = (paths) => {
-	/*fs.copy(`${currentPath}${paths[0]}`, `${currentPath}${paths[1]}/${paths[0]}`, (err) => {
-		console.log(err);
-	});*/
+	
 	/*exec(`cp ${currentPath}${paths[0]} ${currentPath}${paths[1]}/${paths[0]}`, (err, stdout, stderr) => {
 		console.log(err);
 		console.log(stdout);
 		console.log(stderr);
 	});*/
-	
+
 
 }
 

@@ -2,12 +2,10 @@
 
 var EventClient = require('./../../commonModules/localEvent').Client;
 
-var $ = require('jquery');
+var $ = require('./../../commonModules/jquery');
 
-
-//Preguntamos por los datos locales y SOLO los mostramos en la consola.
 /*Variables globales*/
-var canMove = false, /*initX = 0, initY = 0,*/ ctrlPress = false, selected = {"file": [], "folder": []};
+var ctrlPress = false, selected = {"file": [], "folder": []};
 /*metodos globales*/
 var drawFiles
 /*modulos externos*/
@@ -30,11 +28,29 @@ external.drawFiles = drawFiles = (args) => {
 	}
 };
 
+/*metodos locales*/
+var unselectOne = (name) => {
+	/*
+	 *Metodo encargado de borrar de la lista de elementos seleccionados
+	 *uno de los elementos. Para ello busca cual tiene el mismo texto,
+	 *es decir, el nombre del archivo y cuando lo encuentra, borra el
+	 *el indice que tenga de la lista y le quita el inidicativo de estar
+	 *seleccionado
+	*/
+	for (let f in selected)
+		for (let i =0;i<selected[f].length; i++)
+			if ($(selected[f][i]).find("p").html() === name){
+				$(selected[f][i]).removeClass("selected")
+				selected[f].splice(i, i);
+				return null;
+			}
+}
+
 /*metodos locales llamados por eventos*/
 var goInto = (e)=> {
 	/*
-	*funcion encarga de mandar el evento necesario que determina que
-	*carpeta quieren abrir
+	 *funcion encarga de mandar el evento necesario que determina que
+	 *carpeta quieren abrir
 	*/
 	let name = $(e.currentTarget).find('p').html();
 	$('.topBar').append(`<li class="track">${name}</li>`);
@@ -42,13 +58,12 @@ var goInto = (e)=> {
 };
 var goFolderTopBar = (e)=>{
 	/*
-	*Funcion encarga de enviar el evento para indicar a que carpeta del camino
-	*de migas de pan generado en la topbar se quiere ir
+	 *Funcion encarga de enviar el evento para indicar a que carpeta del camino
+	 *de migas de pan generado en la topbar se quiere ir
 	*/
-	let name = $(e.currentTarget).html();
-	console.log(`name vale: ${name}`);
-	comunication.send('changeDir', 'drawFiles', [name]);
 	e.stopPropagation();
+	let name = $(e.currentTarget).html();
+	comunication.send('changeDir', 'drawFiles', [name]);
 };
 var showName = (e)=> {
 	/*mostrar el texto completo de la carpeta  o archivo*/
@@ -58,74 +73,97 @@ var hideName = (e)=> {
 	/*volver a ocultar el texto completo de la carpeta  o archivo*/
 	$(e.currentTarget).find('p').addClass('ellipsis');
 };
-var selected_function = (e)=> {
+var select = (e)=> {
 	/*
-	*Esta función se encarga de:
-	*seleccionar un caja o archivo con un click.	
-	*/
-	// if (!ctrlPress) selected = 
-	if (!canMove){
-		e.stopPropagation();
-		canMove = true;
-		let type = $(e.currentTarget).attr("class");
-		selected[type].push($(e.currentTarget));
-		//let x = initX = e.clientX, y = initY = e.clientY;
-		$(e.currentTarget).addClass('selected');
-		console.log("algo")
-	}
-};
-var sentTo = (e)=> {
-	/*
-	*Esta función se encarga de:
-	*Si ya hay algo seleccionado, la carpeta en la que se hace click es
-	*el destino de la primera
-	*/
-	return;
-	if (!isSelected) return; 	
-	if (isSelected.index('.elements li') === $(e.currentTarget).index('.elements li')) return;
+	 *Esta función se encarga de:
+	 *seleccionar o deseleccionar carpeta o archivos
+	*/	
 	e.stopPropagation();
-	let o = $(e.currentTarget).offset(),
-		acction = (ctrlPress) ? "copy" : "move"
-	isSelected.animate({"top": o.top, "left": o.left},500, ()=> {isSelected.remove(); isSelected = false; canMove=false;});
-	comunication.send(acction, null, [isSelected.find('p').html(), $(e.currentTarget).find('p').html()]);
+	// si no está pulsado cntr y no se está arrastrando, se deselecciona
+	if (!ctrlPress && e.originalEvent.type !== "dragstart") unselect();
+	// Si el elemento ya estába se seleccionado, se sale de la función deseleccionado el elemento
+	if ($(e.currentTarget).attr("class").search("selected") !== -1)
+		return unselectOne($(e.currentTarget).find("p").html());
+	//la clase indica si se trata de una carpeta o un archivo
+	let type = $(e.currentTarget).attr("class").split(" ")[0];
+	selected[type].push($(e.currentTarget));
+	$(e.currentTarget).addClass('selected');
 };
-var moveSpace = (e)=> {
+var onDrag = (e) => {
 	/*
-	*Funcion encarga de permitir el movimiento por el menú de los archivos o carpetas
+	 *Función encargada de posicionar en un lugar concreto los elementos seleccionados
 	*/
-	return;
-	if (!canMove) return; 
-	e.stopPropagation();
-	let x = e.clientX - isSelected.width(), y = e.clientY+50;
-	console.log("se mueve!")
-	isSelected.css({"top": y, "left": x});
+	let x = e.clientX, y = e.clientY;
+	for (let f in selected)
+		for (let i = 0; i< f.length; i++)
+			$(selected[f][i]).addClass("moving").css({"top": y+50, "left": x-50});
 };
-var unselect = (e) => {
+var endDrag = (e) => {	
 	/*
-	*Función que permite la deselección de un arhivo o carpeta
+	 *Función encargada de determinar la posicón que han de tomar los elementos arrastrados
+	*/	
+	let x = e.clientX, y = e.clientY;
+	for (let f in selected)
+		for (let i = 0; i< f.length; i++)
+			$(selected[f][i]).css({"top": y, "left": x+i*$(selected[f][i]).width()});
+	unselect();	
+};
+var endDrop = (e) =>{
+	/*
+	 *Metodo encargado de determinar si se ha soltado en un carpeta o archivo
+	 *distinto a  los seleccionados. Cuando encuentre una coincidencia se sale
+	 *ya que implica que no se quiere copiar o mover el/los archivos selecionados
+	 *Se trata de una función de prevención. No debería encontrar nunca una coincidencia
 	*/
-	if (!canMove) return;
-	canMove = false;
+	e.preventDefault();
+	for (let f in selected)
+		for (var i = 0; i< f.length; i++)
+			if ($(e.currentTarget).index("ul li") === $(selected[f][i]).index("ul li"))
+				return 
+	sentTo($(e.currentTarget).find("p").html())
+};
+var sentTo = (dst)=> {
+	/*
+	 *Esta función se encarga de:
+	 *Si ya hay algo seleccionado, la carpeta en la que se hace click es
+	 *el destino de la primera.
+	 *Si la tecla cntrl está pulsada, se copian dentro de la carpeta,
+	 *Si está sin pulsar, se mueven
+	*/
+	let toCopy = [],
+		acction = (ctrlPress) ? "copy" : "move"	
+	for (let f in selected)
+		for (let i = 0; i<selected[f].length; i++){
+			toCopy.push($(selected[f][i]).find("p").html())
+		}
+	comunication.send(acction, null, [toCopy, dst]);
+};
+var unselect = () => {
+	/*
+	 *Función que permite la deselección de un arhivo o carpeta
+	*/		
 	for (let f in selected){
 		for (let i = selected[f].length-1; i>=0; i--){
 			$(selected[f][i]).removeClass("selected");
 			selected[f].pop();
 		}
-	}
-	console.log(selected)
+	}	
 };
 var pressKey = (e)=> {ctrlPress = (e.keyCode === 17) ? true : false; };
 var keyUp = (e)=>  {if (e.keyCode === 17) ctrlPress = false;}
 
-
+/*control de eventos*/
 $('body')
 .on('dblclick', '.folder', goInto)
 .on('dblclick', '.track', goFolderTopBar)
 .on('mouseover', '.folder, .file', showName)
-.on('mouseout', '.folder, .file', )
-.on('click', '.folder, .file', selected_function)
-.on('click', '.folder', sentTo)
-.on('mousemove', '.elements, .elements *', moveSpace)
+.on('mouseout', '.folder, .file', hideName)
+.on('click', '.folder, .file', select)
+.on('dragstart', '.folder, .file', select)
+.on('drag', '.folder, .file', onDrag)
+.on('dragend', '.folder, .file', endDrag)
+.on('dragover', '.folder, .file', (e)=>{e.preventDefault();})
+.on('drop', '.folder, file', endDrop)
 .on('click', '.elements', unselect)
 .on('keydown', pressKey)
 .on('keyup', keyUp);	
