@@ -5,13 +5,13 @@ var EventClient = require('./../../commonModules/localEvent').Client;
 var $ = require('./../../commonModules/jquery');
 
 /*Variables globales*/
-var ctrlPress = false, selected = {"file": [], "folder": []};
-/*metodos globales*/
-var drawFiles
+var ctrlPress = false,
+	selected = {"file": [], "folder": []};
+
 /*modulos externos*/
 var external = {};
 
-external.drawFiles = drawFiles = (args) => {
+external.drawFiles = (args) => {
 	/*Lista los archivos y carpetas que hay en ese direcorio*/
 	let str = args[0];
 
@@ -44,7 +44,7 @@ var unselectOne = (name) => {
 				selected[f].splice(i, i);
 				return null;
 			}
-}
+};
 
 /*metodos locales llamados por eventos*/
 var goInto = (e)=> {

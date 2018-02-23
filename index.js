@@ -9,21 +9,17 @@ const { exec } = require('child_process');
 
 const EventServer = require('../commonModules/localEvent').Server;
 
-
-/* Declaración de variables globales */
-var win, currentPath, dirList, currentFiles;
-/*Declaración de los metodos que se tengan que emplear fuera*/
-/*Declaración de las funciones globales*/
-var createWin, closeWin, loadFiles, changeDir, move, copy;
-var external = {};
-
-
 exec('echo $USER', (err, stdout, stderr) => {
-	currentPath = `/home/${stdout}/`.replace('\n', '');
+	currentPath = homeDir=`/home/${stdout}/`.replace('\n', '');
 });
 
+/*Variables globales*/
+var win, currentPath, dirList, currentFiles, homeName = "Carpeta personal", homeDir
 
-createWin = () => {
+/*Declaración de las funciones globales*/
+var external = {};
+/*metodos locales*/
+var createWin = () => {
 	win = new BrowserWindow({ width: 800, height: 600, menu: false });
 
 	win.loadURL(url.format({
@@ -36,10 +32,24 @@ createWin = () => {
 		win = null
 	});
 };
+var closeWin = () => app.quit();
 
-closeWin = () => app.quit();
+var copyRecursive = (src, dst) => {
+	let dir = fs.readdirSync(src);
+	for (let i = 0; i<dir.length; i++){
+		if (fs.lstatSync(src + dir[i]).isFile())
+			fs.createReadStream(src + dir[i]).pipe(fs.createWriteStream(dst +"/"+ dir[i]));
+		else if (fs.lstatSync(src + dir[i]).isDirectory())
+			fs.mkdir(dst +"/"+dir[i], '0777', (e)=>{
+				if (e) return console.log(e);
+				copyRecursive((src + dir[i] + '/'), dst +"/"+ dir[i]);
+			});
+	}
+};
 
-external.loadFiles = loadFiles = (dir = '') => {
+/*metodos globales*/
+var loadFiles, changeDir, move, copy;
+external.loadFiles = loadFiles = (dir = '') => {0
 	currentPath = (dir !== '') ? (currentPath + dir[0] + '/') : currentPath;
 	currentFiles = { dir: [], fil: [] };
 	var listDir = fs.readdirSync(currentPath);
@@ -61,37 +71,35 @@ external.loadFiles = loadFiles = (dir = '') => {
 };
 
 external.changeDir = changeDir = (name) => {
-	let path = currentPath.split('/');
-	currentPath = path.slice(0, path.indexOf(name[0]) + 1).join("/") + '/';
-	return [loadFiles()[0], path.slice(1, path.indexOf(name[0]) + 1)];
+	let path = currentPath.split('/'), arr;
+	currentPath = (name != homeName) ? path.slice(0, path.indexOf(name[0]) + 1).join("/") + '/' : homeDir;
+	arr = (name != homeName) ? path.slice(1, path.indexOf(name[0]) + 1) : [];
+	return [loadFiles()[0], arr];
 };
 
 external.move = move = (paths) => {	
+	return alert("ahora intenta pulsar control");
 	for (let i = 0; i<paths[0].length; i++){		
 		fs.rename(`${currentPath}${paths[0][i]}`, `${currentPath}${paths[1]}/${paths[0][i]}`, (err) => {console.log(err);});
 	}
 
 };
 
-external.copy = copy = (paths) => {
-	
-	/*exec(`cp ${currentPath}${paths[0]} ${currentPath}${paths[1]}/${paths[0]}`, (err, stdout, stderr) => {
-		console.log(err);
-		console.log(stdout);
-		console.log(stderr);
-	});*/
-
-
+external.copy = copy = (files) => {
+	let path = currentPath,
+		dst = path + files[1]+'/',
+		src = files[0];	
+	for (let i = 0; i<src.length; i++){
+		if (fs.lstatSync(`${path}${src[i]}`).isFile())
+			fs.createReadStream(`${path}${src[i]}`).pipe(fs.createWriteStream(`${dst}${src[i]}`));
+		else if (fs.lstatSync(`${path}${src[i]}`).isDirectory()){
+			fs.mkdirSync(dst+src[i], '777');
+			copyRecursive((path+src[i]+'/'), dst+src[i]);
+		}
+	}
 }
 
-
 var comunication = new EventServer(external);
-external.changeDir = changeDir = (name) => {
-	let path = currentPath.split('/');
-	currentPath = path.slice(0, path.indexOf(name[0]) + 1).join("/") + '/';
-	return [loadFiles()[0], path.slice(1, path.indexOf(name[0]) + 1)];
-};
-
 
 app.on('ready', createWin);
 app.on('window-all-closed', closeWin);
