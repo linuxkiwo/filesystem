@@ -1,12 +1,14 @@
 'use strict';
-
+/*librerias*/
 var EventClient = require('./../../commonModules/localEvent').Client;
-
 var $ = require('./../../commonModules/jquery');
 
 /*Variables globales*/
 var ctrlPress = false,
-	selected = {"file": [], "folder": []};
+	isCopping = false,
+	selected = {"file": [], "folder": []},
+	toCopy = {"file": [], "folder": []},
+	mapKey = {}
 
 /*modulos externos*/
 var external = {};
@@ -45,7 +47,6 @@ var unselectOne = (name) => {
 				return null;
 			}
 };
-
 var deleteRenderMove = () => {
 	/*
 	 *Función que permite la desaparición de los arhivo o carpeta una vez movidos o borrados
@@ -56,7 +57,43 @@ var deleteRenderMove = () => {
 			selected[f].pop();
 		}
 	}
+};
+var evalKeyMap = () =>{
+	if (mapKey[17] && mapKey[67]){ //press cntrl +c
+		toCopy = Object.assign({}, selected);
+		isCopping = true;		
+	}
+	else if (mapKey[17] && mapKey[86]){ // press cntl +v
+		let src = $(selected['folder'][0]).find("p").html();		
+		sentTo(src, toCopy);
+	}
+	else if (mapKey[17] && mapKey[88]) // press cntl +x
+		toCopy = Object.assign({}, selected);
+		isCopping = false;
 }
+var sentTo = (dst, src = selected)=> {
+	/*
+	 *Esta función se encarga de:
+	 *Si ya hay algo seleccionado, la carpeta en la que se hace click es
+	 *el destino de la primera.
+	 *Si la tecla cntrl está pulsada, se copian dentro de la carpeta,
+	 *Si está sin pulsar, se mueven
+	*/
+	console.log("en sentTo")
+	console.log(src);	
+	let toCopy = [],
+		acction = (ctrlPress || isCopping) ? "copy" : "move"	
+	for (let f in src)
+		for (let i = 0; i<src[f].length; i++){
+			toCopy.push($(src[f][i]).find("p").html())
+		}
+		console.log(toCopy);
+		console.log(dst);
+		console.log(acction);
+	comunication.send(acction, null, [toCopy, dst]);
+	if (acction === "move")
+		deleteRenderMove()
+};
 
 /*metodos locales llamados por eventos*/
 var goInto = (e)=> {
@@ -66,6 +103,7 @@ var goInto = (e)=> {
 	*/
 	let name = $(e.currentTarget).find('p').html();
 	$('.topBar').append(`<li class="track">${name}</li>`);
+	selected = {"file": [], "folder": []};
 	comunication.send('loadFiles', 'drawFiles', [name]);
 };
 var goFolderTopBar = (e)=>{
@@ -89,7 +127,7 @@ var select = (e)=> {
 	/*
 	 *Esta función se encarga de:
 	 *seleccionar o deseleccionar carpeta o archivos
-	*/	
+	*/
 	e.stopPropagation();
 	// si no está pulsado cntr y no se está arrastrando, se deselecciona
 	if (!ctrlPress && e.originalEvent.type !== "dragstart") unselect();
@@ -134,24 +172,6 @@ var endDrop = (e) =>{
 				return 
 	sentTo($(e.currentTarget).find("p").html())
 };
-var sentTo = (dst)=> {
-	/*
-	 *Esta función se encarga de:
-	 *Si ya hay algo seleccionado, la carpeta en la que se hace click es
-	 *el destino de la primera.
-	 *Si la tecla cntrl está pulsada, se copian dentro de la carpeta,
-	 *Si está sin pulsar, se mueven
-	*/
-	let toCopy = [],
-		acction = (ctrlPress) ? "copy" : "move"	
-	for (let f in selected)
-		for (let i = 0; i<selected[f].length; i++){
-			toCopy.push($(selected[f][i]).find("p").html())
-		}
-	comunication.send(acction, null, [toCopy, dst]);
-	if (acction === "move")
-		deleteRenderMove()
-};
 var unselect = () => {
 	/*
 	 *Función que permite la deselección de un arhivo o carpeta
@@ -159,12 +179,20 @@ var unselect = () => {
 	for (let f in selected){
 		for (let i = selected[f].length-1; i>=0; i--){
 			$(selected[f][i]).removeClass("selected");
-			selected[f].pop();
+			//selected[f].pop();
 		}
 	}	
+	selected = {"file": [], "folder": []};
 };
-var pressKey = (e)=> {ctrlPress = (e.keyCode === 17) ? true : false; };
-var keyUp = (e)=>  {if (e.keyCode === 17) ctrlPress = false;}
+var pressKey = (e)=> {
+	ctrlPress = (e.keyCode === 17) ? true : false;	
+	mapKey[e.keyCode] = true;
+	evalKeyMap();
+};
+var keyUp = (e)=>  {
+	if (e.keyCode === 17) ctrlPress = false;
+	mapKey[e.keyCode] = false;	
+};
 
 /*control de eventos*/
 $('body')
