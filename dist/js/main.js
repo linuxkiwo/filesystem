@@ -46,6 +46,18 @@ var unselectOne = (name) => {
 			}
 };
 
+var deleteRenderMove = () => {
+	/*
+	 *Función que permite la desaparición de los arhivo o carpeta una vez movidos o borrados
+	*/		
+	for (let f in selected){
+		for (let i = selected[f].length-1; i>=0; i--){
+			$(selected[f][i]).remove();
+			selected[f].pop();
+		}
+	}
+}
+
 /*metodos locales llamados por eventos*/
 var goInto = (e)=> {
 	/*
@@ -137,6 +149,8 @@ var sentTo = (dst)=> {
 			toCopy.push($(selected[f][i]).find("p").html())
 		}
 	comunication.send(acction, null, [toCopy, dst]);
+	if (acction === "move")
+		deleteRenderMove()
 };
 var unselect = () => {
 	/*
