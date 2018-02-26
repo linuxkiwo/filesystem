@@ -9,26 +9,52 @@ const { exec } = require('child_process');
 
 const EventServer = require('../commonModules/localEvent').Server;
 
+/*Variables globales*/
+var win, currentPath, dirList, currentFiles, homeName = "Carpeta personal", homeDir, stringFile = "";
+
 exec('echo $USER', (err, stdout, stderr) => {
 	currentPath = homeDir=`/home/${stdout}/`.replace('\n', '');
 });
+(()=>{
+	if (process.argv.length <=2) return;
+	else console.log(process.argv.length)
+	let demand = process.argv[2];
+	let data = fs.readFileSync(__dirname+ '/dist/index.html', 'utf-8');
+	stringFile =  data.replace('</head>', `<link rel="stylesheet" href="css/lib/${demand}.css"></head>`).replace('</body>', `<script src="js/lib/${demand}.js" charset="utf-8" type="text/javascript"></script></body>`);
+	fs.writeFileSync(__dirname+ '/dist/index_tmp.html', stringFile, 'utf-8');
 
-/*Variables globales*/
-var win, currentPath, dirList, currentFiles, homeName = "Carpeta personal", homeDir
+})();
+
 
 /*Declaración de las funciones globales*/
 var external = {};
 /*metodos locales*/
+
+
 var createWin = () => {
 	win = new BrowserWindow({ width: 800, height: 600, menu: false });
-
-	win.loadURL(url.format({
-		pathname: path.join(__dirname, 'dist/index.html'),
-		protocol: 'file:',
-		slashes: true
-	}));
+	if (stringFile === ""){
+		win.loadURL(url.format({
+			pathname: path.join(__dirname, 'dist/index.html'),
+			protocol: 'file:',
+			slashes: true
+		}));
+		console.log("opt 1")
+	}
+	else{
+		win.loadURL(url.format({
+			pathname: path.join(__dirname, 'dist/index_tmp.html'),
+			protocol: 'file:',
+			slashes: true
+		}));
+		console.log("opt 2")
+	}
 	win.webContents.openDevTools();
 	win.on('closed', () => {
+		try{
+			fs.unlink(__dirname+ 'dist/index_tmp.html')
+		}catch(e){};
+		console.log("nos cierran? :(")
 		win = null
 	});
 };
@@ -49,7 +75,7 @@ var copyRecursive = (src, dst) => {
 
 /*metodos globales*/
 var loadFiles, changeDir, move, copy;
-external.loadFiles = loadFiles = (dir = '') => {0
+external.loadFiles = loadFiles = (dir = '') => {
 	currentPath = (dir !== '') ? (currentPath + dir[0] + '/') : currentPath;
 	currentFiles = { dir: [], fil: [] };
 	var listDir = fs.readdirSync(currentPath);
@@ -82,7 +108,6 @@ external.move = move = (paths) => {
 	for (let i = 0; i<paths[0].length; i++){		
 		fs.rename(`${currentPath}${paths[0][i]}`, `${currentPath}${paths[1]}/${paths[0][i]}`, (err) => {console.log(err);});
 	}
-
 };
 
 external.copy = copy = (files) => {
@@ -100,6 +125,6 @@ external.copy = copy = (files) => {
 }
 
 var comunication = new EventServer(external);
-
+/*eventos*/
 app.on('ready', createWin);
 app.on('window-all-closed', closeWin);

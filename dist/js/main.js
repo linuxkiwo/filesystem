@@ -16,10 +16,8 @@ var external = {};
 external.drawFiles = (args) => {
 	/*Lista los archivos y carpetas que hay en ese direcorio*/
 	let str = args[0];
-
 	$('main ul').html(str);
-	/*Cambia el menú de navegación */
-	//console.log(args[0][1])
+	/*Cambia el menú de navegación */	
 	if (args.length >=2){
 		console.log(args[1])
 		str = '<li class="track">Carpeta Personal</li>';
@@ -79,17 +77,12 @@ var sentTo = (dst, src = selected)=> {
 	 *Si la tecla cntrl está pulsada, se copian dentro de la carpeta,
 	 *Si está sin pulsar, se mueven
 	*/
-	console.log("en sentTo")
-	console.log(src);	
 	let toCopy = [],
 		acction = (ctrlPress || isCopping) ? "copy" : "move"	
 	for (let f in src)
 		for (let i = 0; i<src[f].length; i++){
 			toCopy.push($(src[f][i]).find("p").html())
 		}
-		console.log(toCopy);
-		console.log(dst);
-		console.log(acction);
 	comunication.send(acction, null, [toCopy, dst]);
 	if (acction === "move")
 		deleteRenderMove()

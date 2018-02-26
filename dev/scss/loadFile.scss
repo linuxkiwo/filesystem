@@ -1,0 +1,25 @@
+$footerHeight: 10vh;
+footer{
+		width: 100%;
+		height: $footerHeight;
+		float: left;
+		form {
+			width: 100%;
+			height: 100%;
+			float:left;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			input, p{
+				flex-basis:0;
+				flex-grow:3;
+				margin: 0 5%;
+			}
+			input[type="submit"]{
+				flex-grow: 1
+			}
+			p{
+				flex-grow: 1
+			}
+		}
+	}
