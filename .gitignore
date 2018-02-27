@@ -1,7 +1,7 @@
-node_modules/
 .sass-cache/
 package-lock.json
 ./dist/css/main.css.map
 ./dist/css/lib/main.css.map
 dist/index_tmp.html
 toDel.js
+/dist/buffer
