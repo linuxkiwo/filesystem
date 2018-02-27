@@ -3,3 +3,5 @@ node_modules/
 package-lock.json
 ./dist/css/main.css.map
 ./dist/css/lib/main.css.map
+dist/index_tmp.html
+toDel.js

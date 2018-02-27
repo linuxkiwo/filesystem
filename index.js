@@ -51,9 +51,10 @@ var createWin = () => {
 	}
 	win.webContents.openDevTools();
 	win.on('closed', () => {
-		try{
-			fs.unlink(__dirname+ 'dist/index_tmp.html')
-		}catch(e){};
+			fs.unlink(__dirname+ '/dist/index_tmp.html', (err) =>{
+				if (err) return console.log(err);
+				return console.log("se ha borrado");
+			});
 		console.log("nos cierran? :(")
 		win = null
 	});
@@ -104,9 +105,8 @@ external.changeDir = changeDir = (name) => {
 };
 
 external.move = move = (paths) => {	
-	return alert("ahora intenta pulsar control");
 	for (let i = 0; i<paths[0].length; i++){		
-		fs.rename(`${currentPath}${paths[0][i]}`, `${currentPath}${paths[1]}/${paths[0][i]}`, (err) => {console.log(err);});
+		fs.rename(`${currentPath}${paths[0][i]}`, `${currentPath}${paths[1]}/${paths[0][i]}`, (err) => {if (err) console.log(err);});
 	}
 };
 
