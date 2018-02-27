@@ -13,7 +13,7 @@ const EventServer = require('../commonModules/localEvent').Server;
 var win, currentPath, dirList, currentFiles, homeName = "Carpeta personal", homeDir, stringFile = "";
 
 exec('echo $USER', (err, stdout, stderr) => {
-	currentPath = homeDir=`/home/${stdout}/`.replace('\n', '');
+	homeDir=`/home/${stdout}/`.replace('\n', '');
 });
 (()=>{
 	if (process.argv.length <=2) return;
@@ -76,6 +76,7 @@ var copyRecursive = (src, dst) => {
 
 /*metodos globales*/
 var loadFiles, changeDir, move, copy;
+
 external.loadFiles = loadFiles = (dir = '') => {
 	currentPath = (dir !== '') ? (currentPath + dir[0] + '/') : currentPath;
 	currentFiles = { dir: [], fil: [] };
@@ -123,6 +124,17 @@ external.copy = copy = (files) => {
 		}
 	}
 }
+
+external.initialLoad = (option) => {
+	switch (option){
+		case 'image':
+			currentPath = homeDir + 'Imágenes';
+			break;
+		default:
+			currentPath = homeDir;
+	}
+	return [loadFiles()[0], currentPath.split("/").slice(1)]
+};
 
 var comunication = new EventServer(external);
 /*eventos*/

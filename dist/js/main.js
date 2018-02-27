@@ -10,6 +10,7 @@ mainScope.isCopping = false,
 mainScope.selected = {"file": [], "folder": []},
 mainScope.toCopy = {"file": [], "folder": []},
 mainScope.mapKey = {}
+mainScope.currentPath = ''
 
 /*modulos externos*/
 var external = {};
@@ -23,6 +24,7 @@ external.drawFiles = (args) => {
 		console.log(args[1])
 		str = '<li class="track">Carpeta Personal</li>';
 		let path = args[1];
+		mainScope.currentPath = path.join("/");
 		for (var i=2; i< path.length;i++)
 			str +=`<li class="track">${path[i]}</li>`;
 		$('.topBar').html(str);
@@ -100,6 +102,7 @@ mainScope.goInto = (e)=> {
 	 *carpeta quieren abrir
 	*/
 	let name = $(e.currentTarget).find('p').html();
+	mainScope.currentPath += "/"+name;
 	$('.topBar').append(`<li class="track">${name}</li>`);
 	mainScope.selected = {"file": [], "folder": []};
 	comunication.send('loadFiles', 'drawFiles', [name]);
@@ -210,4 +213,4 @@ $('body')
 .on('keyup', mainScope.keyUp);	
 
 var comunication = new EventClient(external);
-comunication.send('loadFiles', 'drawFiles', '');
+comunication.send('initialLoad', 'drawFiles', '');
