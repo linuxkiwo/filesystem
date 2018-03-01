@@ -2,7 +2,7 @@
 /*librerias*/
 var EventClient = require('./../../commonModules/localEvent').Client;
 var $ = require('./../../commonModules/jquery');
-#{js}
+#{jsInit}
 /*Variables globales*/
 var mainScope = {};
 mainScope.ctrlPress = false,
@@ -214,3 +214,5 @@ $('body')
 
 var comunication = new EventClient(external);
 comunication.send('initialLoad', 'drawFiles', '');
+
+#{jsEnd}
