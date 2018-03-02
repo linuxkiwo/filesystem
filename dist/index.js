@@ -12,7 +12,8 @@ const LoadApp = require('loadapp');
 /*constantes globales*/
 const ConfigPath = '../../commonModules/config.json';
 const ProgramName = "fileSystem";
-let l = new LoadApp(__dirname, ConfigPath, ProgramName);
+
+let l = new LoadApp(__dirname, ConfigPath, ProgramName, process.argv.splice(2));
 
 /*Variables globales*/
 var win,
@@ -27,7 +28,8 @@ var win,
 	pathToLoad = l.pathToLoad;
 
 /*Declaración de las funciones globales*/
-var external = {};
+var external = this.external = {};
+this.app = app;
 /*metodos locales*/
 
 var createWin = () => {
@@ -40,8 +42,7 @@ var createWin = () => {
 		
 	win.webContents.openDevTools();
 	win.on('closed', () => {
-		l.clearBuffer();
-		console.log("nos cierran? :(")
+		l.clearBuffer();		
 		win = null
 	});
 };
@@ -110,7 +111,7 @@ external.copy = copy = (files) => {
 			copyRecursive((path+src[i]+'/'), dst+src[i]);
 		}
 	}
-}
+};
 
 external.initialLoad = (option) => {
 	homeDir = (!homeDir) ? l.homeDir : homeDir;	
@@ -123,6 +124,11 @@ external.initialLoad = (option) => {
 	}	
 	return [loadFiles()[0], currentPath.split("/").slice(1)];
 };
+
+//load plugin
+
+l.loadModules(this, this)
+
 
 var comunication = new EventServer(external);
 /*eventos*/
