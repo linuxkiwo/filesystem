@@ -20,11 +20,10 @@ external.drawFiles = (args) => {
 	let str = args[0];
 	$('main ul').html(str);
 	/*Cambia el menú de navegación */	
-	if (args.length >=2){
-		console.log(args[1])
+	if (args.length >=2){		
 		str = '<li class="track">Carpeta Personal</li>';
 		let path = args[1];
-		mainScope.currentPath = path.join("/");
+		mainScope.currentPath = "/"+path.join("/");		
 		for (var i=2; i< path.length;i++)
 			str +=`<li class="track">${path[i]}</li>`;
 		$('.topBar').html(str);
@@ -72,7 +71,8 @@ mainScope.evalKeyMap = () =>{
 		mainScope.toCopy = Object.assign({}, mainScope.selected);
 		mainScope.isCopping = false;
 	}
-	console.log(mainScope.isCopping)
+	else if (mainScope.mapKey[113]) //press f2
+		mainScope.changeName();	
 }
 mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	/*
@@ -83,9 +83,7 @@ mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	 *Si está sin pulsar, se mueven
 	*/
 	let toCopy = [],
-		acction = (mainScope.isCopping) ? "copy" : "move";
-	console.log(acction);
-	console.log(mainScope.isCopping);
+		acction = (mainScope.isCopping) ? "copy" : "move";	
 	for (let f in src)
 		for (let i = 0; i<src[f].length; i++){
 			toCopy.push($(src[f][i]).find("p").html())
@@ -102,7 +100,7 @@ mainScope.goInto = (e)=> {
 	 *carpeta quieren abrir
 	*/
 	let name = $(e.currentTarget).find('p').html();
-	mainScope.currentPath += "/"+name;
+	mainScope.currentPath += name + "/";
 	$('.topBar').append(`<li class="track">${name}</li>`);
 	mainScope.selected = {"file": [], "folder": []};
 	comunication.send('loadFiles', 'drawFiles', [name]);
@@ -186,6 +184,31 @@ mainScope.unselect = () => {
 	}	
 	mainScope.selected = {"file": [], "folder": []};
 };
+mainScope.changeName = (e) => {
+	let cont = (mainScope.selected['file'].length >=1) ? 'file': 'folder',
+		name =  $(mainScope.selected[cont][0]).find('p').html();
+	$(mainScope.selected[cont][0]).find('p').attr({"contenteditable": "true", "name": name}).focus();
+}
+mainScope.aceptName = (e) => {
+	if (e.keyCode !== 13) return;
+	e.preventDefault();
+	let name = $(e.currentTarget).html(),
+		toRename = [],
+		extMode = '',
+		ext = []
+	for (let f of ["file", "folder"]){		
+		for (let o of mainScope.selected[f])		
+			toRename.push(($(o).find("p").attr("name")) ? $(o).find("p").attr("name") : $(o).find("p").html());
+	}
+	//ext1 = $(e.currentTarget).attr("name").split(".").slice(-1).join("."), $(e.currentTarget).html().split(".").slice(-1).join(".")];
+	let ext1 = $(e.currentTarget).attr("name").split("."),
+		ext2 = name.split(".");
+	ext.push((ext1.length >=2)? ext1.slice(-1)[0]:'')
+	ext.push((ext2.length >=2)? ext2.slice(-1)[0]:'')	
+	extMode = (ext[0] == ext[1]) ? false : ext[0]	
+	console.log("extMode: " + extMode)
+	comunication.send('rename', 'drawFiles', [toRename, name, extMode]);
+};
 mainScope.pressKey = (e)=> {
 	mainScope.ctrlPress = (e.keyCode === 17) ? true : false;	
 	mainScope.mapKey[e.keyCode] = true;
@@ -195,6 +218,7 @@ mainScope.keyUp = (e)=>  {
 	if (e.keyCode === 17) mainScope.ctrlPress = false;
 	mainScope.mapKey[e.keyCode] = false;	
 };
+
 
 /*control de eventos*/
 $('body')
@@ -210,7 +234,8 @@ $('body')
 .on('drop', '.folder, file', mainScope.endDrop)
 .on('click', '.elements', mainScope.unselect)
 .on('keydown', mainScope.pressKey)
-.on('keyup', mainScope.keyUp);	
+.on('keyup', mainScope.keyUp)
+.on('keydown', '[contenteditable="true"]', mainScope.aceptName)
 
 var comunication = new EventClient(external);
 comunication.send('initialLoad', 'drawFiles', '');

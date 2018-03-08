@@ -61,9 +61,51 @@ var copyRecursive = (src, dst) => {
 			});
 	}
 };
+var renameOneFile = (oldName, newName) => fs.rename(`${currentPath}${oldName}`, `${currentPath}${newName}`, (err) => {if (err) console.log(err)});
+var generateStringNewName = (files, newName, oldExt) => {
+	/*
+	 * Función encargada de evaluar la extensión de los archivos
+	 * files [String]
+	 * devuelve true si es la misma o false en caso contrario
+	*/
+	let ext = {},
+		name = [],
+		str = '',
+		newFiles = []
+	for (let i = 0; i<files.length; i++){
+		let f = files[i];
+		name = f.split(".");
+		let extKey = (name.length > 1) ? name.slice(-1) : '';
+		if (!ext[extKey]) ext[extKey] = [];
+		ext[extKey].push(true)
+		console.log(extKey)
+		console.log(oldExt)
+		str = `${newName[0]}_${ext[extKey].length}${(extKey === oldExt) ? newName[1] : "." + extKey}`;
+		newFiles.push(str)		
+	}
+	return newFiles;
+};
+var separateName = (name) => {
+	/*
+	 * Función encargada de determinar si el nuevo nombre introducido tiene extensión o no
+	 * name: String
+	 * -> [String]  con el valor del nombre y la ext por separado
+	*/
+	let newName = name.split("."),
+		newExt = '';
+	if (newName.length >=2){
+		newExt = "." + newName.slice(-1);		
+		newName = newName.slice(0, -1);
+	}
+	else{
+		newName =  newName[0];
+		newExt = '';
+	}
+	return [newName, newExt];
+}
 
 /*metodos globales*/
-var loadFiles, changeDir, move, copy;
+var loadFiles, changeDir, move, copy, initialLoad, rename;
 
 external.loadFiles = loadFiles = (dir = '') => {
 	currentPath = (dir !== '') ? (currentPath + dir[0] + '/') : currentPath;
@@ -113,7 +155,7 @@ external.copy = copy = (files) => {
 	}
 };
 
-external.initialLoad = (option) => {
+external.initialLoad = initialLoad = (option) => {
 	homeDir = (!homeDir) ? l.homeDir : homeDir;	
 	switch (option){
 		case 'image':
@@ -125,8 +167,30 @@ external.initialLoad = (option) => {
 	return [loadFiles()[0], currentPath.split("/").slice(1)];
 };
 
+external.rename = rename = (fls)  => {
+	/*
+	 *Función encargada de cambiar el nombre de los archivos
+	 *fls: Array
+	 *fls[0]: [String] -> Contiene la lista de archivos que se quiere renombrar
+	 *fls[1]: String -> El nuevo nombre del archivo.
+	 *fls[2]: Bool -> Si la ext se ha modificado
+	*/	
+	let files = fls[0],
+		name = fls[1],
+		extMod = fls[2],
+		newName,
+		newNames;	
+	if (files.length === 1){
+		renameOneFile(files[0], name);
+		return;
+	}
+	newName = separateName(name);	
+	newNames = generateStringNewName(files, newName, extMod);
+	for (let i = 0; i<files.length;i++)
+		renameOneFile(files[i], newNames[i]);
+	return [loadFiles()[0]];
+}
 //load plugin
-
 l.loadModules(this, this)
 
 
