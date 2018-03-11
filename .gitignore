@@ -1,8 +1,10 @@
 .sass-cache/
 package-lock.json
-./dist/css/main.css.map
+./dist/public/css/main.css.map
 ./dist/css/lib/main.css.map
 .buffer
+./dist/public/css/main.css
 toDel.js
 prueba*
-/dist/buffer
+/dev/scss/style.scss.map
+./.buffer

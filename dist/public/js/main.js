@@ -4,6 +4,24 @@ var EventClient = require('./../../commonModules/localEvent').Client;
 var $ = require('./../../commonModules/jquery');
 #{jsInit}
 /*Variables globales*/
+let contentMenuConstruct = {
+	".folder": {
+		"Abrir": "mainScope.goInto",
+		"Borrar": "mainScope.toDel",
+		"Cambiar nombre": "mainScope.changeName",
+		"Cortar": "mainScope.prepareToCut",
+		"Copiar": "mainScope.prepareToCopy",
+		"Propiedades": "alert('Opción no permirida de momento')"
+	},
+	".file": {
+		"Borrar": "mainScope.toDel",
+		"Cambiar nombre": "mainScope.changeName",
+		"Cortar": "mainScope.prepareToCut",
+		"Copiar": "mainScope.prepareToCopy",
+		"Propiedades": "alert('Opción no permirida de momento')"
+	}
+};
+const contentMenu = new ContentMenu(contentMenuConstruct);
 var mainScope = {};
 mainScope.ctrlPress = false,
 mainScope.isCopping = false,
@@ -19,11 +37,11 @@ external.drawFiles = (args) => {
 	/*Lista los archivos y carpetas que hay en ese direcorio*/
 	let str = args[0];
 	$('main ul').html(str);
-	/*Cambia el menú de navegación */	
-	if (args.length >=2){		
+	/*Cambia el menú de navegación */
+	if (args.length >=2){
 		str = '<li class="track">Carpeta Personal</li>';
 		let path = args[1];
-		mainScope.currentPath = "/"+path.join("/");		
+		mainScope.currentPath = "/"+path.join("/");
 		for (var i=2; i< path.length;i++)
 			str +=`<li class="track">${path[i]}</li>`;
 		$('.topBar').html(str);
@@ -50,7 +68,7 @@ mainScope.unselectOne = (name) => {
 mainScope.deleteRenderMove = (toDel) => {
 	/*
 	 *Función que permite la desaparición de los arhivo o carpeta una vez movidos o borrados
-	*/		
+	*/
 	for (let f in toDel){
 		for (let i = toDel[f].length-1; i>=0; i--){
 			$(toDel[f][i]).remove();
@@ -60,19 +78,16 @@ mainScope.deleteRenderMove = (toDel) => {
 };
 mainScope.evalKeyMap = () =>{
 	if (mainScope.mapKey[17] && mainScope.mapKey[67]){ //press cntrl +c
-		mainScope.toCopy = Object.assign({}, mainScope.selected);
-		mainScope.isCopping = true;		
+		mainScope.prepareToCopy()
 	}
 	else if (mainScope.mapKey[17] && mainScope.mapKey[86]){ // press cntl +v
-		let dst = $(mainScope.selected['folder'][0]).find("p").html();		
-		mainScope.sentTo(dst, mainScope.toCopy);
+		mainScope.paste()
 	}
 	else if (mainScope.mapKey[17] && mainScope.mapKey[88]){ // press cntl +x
-		mainScope.toCopy = Object.assign({}, mainScope.selected);
-		mainScope.isCopping = false;
+		mainScope.prepareToCut();
 	}
 	else if (mainScope.mapKey[113]) //press f2
-		mainScope.changeName();	
+		mainScope.changeName();
 }
 mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	/*
@@ -83,7 +98,7 @@ mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	 *Si está sin pulsar, se mueven
 	*/
 	let toCopy = [],
-		acction = (mainScope.isCopping) ? "copy" : "move";	
+		acction = (mainScope.isCopping) ? "copy" : "move";
 	for (let f in src)
 		for (let i = 0; i<src[f].length; i++){
 			toCopy.push($(src[f][i]).find("p").html())
@@ -92,16 +107,33 @@ mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	if (acction === "move")
 		mainScope.deleteRenderMove(src)
 };
-
+mainScope.prepareToCopy = () => {
+	mainScope.toCopy = Object.assign({}, mainScope.selected);
+	mainScope.isCopping = true;
+};
+mainScope.prepareToCut = () => {
+	mainScope.toCopy = Object.assign({}, mainScope.selected);
+	mainScope.isCopping = false;
+};
+mainScope.paste = () => {
+	let dst = $(mainScope.selected['folder'][0]).find("p").html();
+	mainScope.sentTo(dst, mainScope.toCopy);
+};
 /*metodos locales llamados por eventos*/
 mainScope.goInto = (e)=> {
 	/*
 	 *funcion encarga de mandar el evento necesario que determina que
 	 *carpeta quieren abrir
 	*/
-	let name = $(e.currentTarget).find('p').html();
+	let name = '';
+	try{
+		name = $(e.currentTarget).find('p').html();
+	}catch (e){
+		name = mainScope.selected['folder'];
+		name = name[name.length-1].find("p").html();
+	}
 	mainScope.currentPath += name + "/";
-	$('.topBar').append(`<li class="track">${name}</li>`);
+	$('.topBar').append(`<li class="track">${name}</li>`);	
 	mainScope.selected = {"file": [], "folder": []};
 	comunication.send('loadFiles', 'drawFiles', [name]);
 };
@@ -127,7 +159,9 @@ mainScope.select = (e)=> {
 	 *Esta función se encarga de:
 	 *seleccionar o deseleccionar carpeta o archivos
 	*/
+	if (e.which === 2) return;
 	e.stopPropagation();
+	e.preventDefault();
 	// si no está pulsado cntr y no se está arrastrando, se deselecciona
 	if (!mainScope.ctrlPress && e.originalEvent.type !== "dragstart") mainScope.unselect();
 	// Si el elemento ya estába se seleccionado, se sale de la función deseleccionado el elemento
@@ -147,15 +181,15 @@ mainScope.onDrag = (e) => {
 		for (let i = 0; i< f.length; i++)
 			$(mainScope.selected[f][i]).addClass("moving").css({"top": y+50, "left": x-50});
 };
-mainScope.endDrag = (e) => {	
+mainScope.endDrag = (e) => {
 	/*
 	 *Función encargada de determinar la posicón que han de tomar los elementos arrastrados
-	*/	
+	*/
 	let x = e.clientX, y = e.clientY;
 	for (let f in mainScope.selected)
 		for (let i = 0; i< f.length; i++)
 			$(mainScope.selected[f][i]).css({"top": y, "left": x+i*$(mainScope.selected[f][i]).width()});
-	mainScope.unselect();	
+	mainScope.unselect();
 };
 mainScope.endDrop = (e) =>{
 	/*
@@ -175,13 +209,13 @@ mainScope.endDrop = (e) =>{
 mainScope.unselect = () => {
 	/*
 	 *Función que permite la deselección de un arhivo o carpeta
-	*/		
+	*/
+	console.info("entra?")
 	for (let f in mainScope.selected){
 		for (let i = mainScope.selected[f].length-1; i>=0; i--){
-			$(mainScope.selected[f][i]).removeClass("selected");
-			//selected[f].pop();
+			$(mainScope.selected[f][i]).removeClass("selected");			
 		}
-	}	
+	}
 	mainScope.selected = {"file": [], "folder": []};
 };
 mainScope.changeName = (e) => {
@@ -196,27 +230,27 @@ mainScope.aceptName = (e) => {
 		toRename = [],
 		extMode = '',
 		ext = []
-	for (let f of ["file", "folder"]){		
-		for (let o of mainScope.selected[f])		
+	for (let f of ["file", "folder"]){
+		for (let o of mainScope.selected[f])
 			toRename.push(($(o).find("p").attr("name")) ? $(o).find("p").attr("name") : $(o).find("p").html());
 	}
 	//ext1 = $(e.currentTarget).attr("name").split(".").slice(-1).join("."), $(e.currentTarget).html().split(".").slice(-1).join(".")];
 	let ext1 = $(e.currentTarget).attr("name").split("."),
 		ext2 = name.split(".");
 	ext.push((ext1.length >=2)? ext1.slice(-1)[0]:'')
-	ext.push((ext2.length >=2)? ext2.slice(-1)[0]:'')	
-	extMode = (ext[0] == ext[1]) ? false : ext[0]	
+	ext.push((ext2.length >=2)? ext2.slice(-1)[0]:'')
+	extMode = (ext[0] == ext[1]) ? false : ext[0]
 	console.log("extMode: " + extMode)
 	comunication.send('rename', 'drawFiles', [toRename, name, extMode]);
 };
 mainScope.pressKey = (e)=> {
-	mainScope.ctrlPress = (e.keyCode === 17) ? true : false;	
+	mainScope.ctrlPress = (e.keyCode === 17) ? true : false;
 	mainScope.mapKey[e.keyCode] = true;
 	mainScope.evalKeyMap();
 };
 mainScope.keyUp = (e)=>  {
 	if (e.keyCode === 17) mainScope.ctrlPress = false;
-	mainScope.mapKey[e.keyCode] = false;	
+	mainScope.mapKey[e.keyCode] = false;
 };
 
 
@@ -226,18 +260,16 @@ $('body')
 .on('dblclick', '.track', mainScope.goFolderTopBar)
 .on('mouseover', '.folder, .file', mainScope.showName)
 .on('mouseout', '.folder, .file', mainScope.hideName)
-.on('click', '.folder, .file', mainScope.select)
+.on('mousedown', '.folder, .file', mainScope.select)
 .on('dragstart', '.folder, .file', mainScope.select)
 .on('drag', '.folder, .file', mainScope.onDrag)
 .on('dragend', '.folder, .file', mainScope.endDrag)
 .on('dragover', '.folder, .file', (e)=>{e.preventDefault();})
 .on('drop', '.folder, file', mainScope.endDrop)
-.on('click', '.elements', mainScope.unselect)
+.on('mousedown', '.elements', mainScope.unselect)
 .on('keydown', mainScope.pressKey)
 .on('keyup', mainScope.keyUp)
-.on('keydown', '[contenteditable="true"]', mainScope.aceptName)
-
+.on('keydown', '[contenteditable="true"]', mainScope.aceptName);
 var comunication = new EventClient(external);
 comunication.send('initialLoad', 'drawFiles', '');
-
 #{jsEnd}

@@ -8,6 +8,7 @@ const url = require('url');
 const { exec } = require('child_process');
 
 const EventServer = require('../../commonModules/localEvent').Server;
+
 const LoadApp = require('loadapp');
 /*constantes globales*/
 const ConfigPath = '../../commonModules/config.json';
@@ -61,7 +62,19 @@ var copyRecursive = (src, dst) => {
 			});
 	}
 };
-var renameOneFile = (oldName, newName) => fs.rename(`${currentPath}${oldName}`, `${currentPath}${newName}`, (err) => {if (err) console.log(err)});
+var renameOneFile = (oldName, newName) => {	
+	let i = 1, ext, name;
+	console.log(`${currentPath}${oldName} -> ${currentPath}${newName}`);
+	console.log("aqui peta")
+	while(fs.lstatSync(`${currentPath}${newName}`).isFile() || fs.lstatSync(`${currentPath}${newName}`).dir()){
+		newName = newName.split(".");
+		ext = newName.slice(-1);
+		name = newName.slice(0,-1);
+		newName = `${name.join(".")}_${i}.${ext}`;
+	}
+	console.log(`${currentPath}${oldName} -> ${currentPath}${newName}`);
+	fs.rename(`${currentPath}${oldName}`, `${currentPath}${newName}`, (err) => {if (err) console.log(err)})
+};
 var generateStringNewName = (files, newName, oldExt) => {
 	/*
 	 * Función encargada de evaluar la extensión de los archivos
@@ -78,8 +91,6 @@ var generateStringNewName = (files, newName, oldExt) => {
 		let extKey = (name.length > 1) ? name.slice(-1) : '';
 		if (!ext[extKey]) ext[extKey] = [];
 		ext[extKey].push(true)
-		console.log(extKey)
-		console.log(oldExt)
 		str = `${newName[0]}_${ext[extKey].length}${(extKey === oldExt) ? newName[1] : "." + extKey}`;
 		newFiles.push(str)		
 	}
@@ -122,9 +133,9 @@ external.loadFiles = loadFiles = (dir = '') => {
 	let list = currentFiles,
 		str = '';
 	for (var i in list['dir'])
-		str += `<li class="folder"><img src="media/folder.jpg" draggable="true"><p>${list['dir'][i]}</p></li>`;
+		str += `<li class="folder"><img src="media/folder.jpg" draggable="true" /><p>${list['dir'][i]}</p></li>`;
 	for (i in list['fil'])
-		str += `<li class="file"><img src="media/file.jpg" draggable="true"><p>${list['fil'][i]}</p></li>`;
+		str += `<li class="file"><img src="media/file.jpg" draggable="true" /><p>${list['fil'][i]}</p></li>`;	
 	return [str];
 };
 
@@ -182,12 +193,12 @@ external.rename = rename = (fls)  => {
 		newNames;	
 	if (files.length === 1){
 		renameOneFile(files[0], name);
-		return;
+		return [loadFiles()[0]];
 	}
 	newName = separateName(name);	
 	newNames = generateStringNewName(files, newName, extMod);
 	for (let i = 0; i<files.length;i++)
-		renameOneFile(files[i], newNames[i]);
+		renameOneFile(files[i], newNames[i]);	
 	return [loadFiles()[0]];
 }
 //load plugin
