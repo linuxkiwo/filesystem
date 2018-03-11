@@ -63,16 +63,33 @@ var copyRecursive = (src, dst) => {
 	}
 };
 var renameOneFile = (oldName, newName) => {	
-	let i = 1, ext, name;
-	console.log(`${currentPath}${oldName} -> ${currentPath}${newName}`);
-	console.log("aqui peta")
-	while(fs.lstatSync(`${currentPath}${newName}`).isFile() || fs.lstatSync(`${currentPath}${newName}`).dir()){
-		newName = newName.split(".");
-		ext = newName.slice(-1);
-		name = newName.slice(0,-1);
-		newName = `${name.join(".")}_${i}.${ext}`;
-	}
-	console.log(`${currentPath}${oldName} -> ${currentPath}${newName}`);
+	let ext, name, cond = true, reg = /(\w*)\_(\d*)/;
+	while(cond){		
+		try{
+			fs.lstatSync(`${currentPath}${newName}`);			
+		}
+		catch (e){
+			cond = (e.errno === -2) ?  false: true;			
+			continue;
+		}
+		newName = (typeof(newName) === 'string') ? newName.split(".") : newName;
+		if (newName.length >1){			
+			ext = "." + newName.slice(-1);	
+			name = newName.slice(0,-1);
+		}
+		else {			
+			ext = '';
+			name = newName;
+		}		
+		name = name.join(".");
+		if (!reg.test(name)){
+			newName = `${name}_1${ext}`;			
+		}
+		else {
+			let match = name.match(reg);
+			newName = `${match[1]}_${parseInt(match[2])+1}${ext}`;			
+		}		
+	}	
 	fs.rename(`${currentPath}${oldName}`, `${currentPath}${newName}`, (err) => {if (err) console.log(err)})
 };
 var generateStringNewName = (files, newName, oldExt) => {
@@ -113,7 +130,8 @@ var separateName = (name) => {
 		newExt = '';
 	}
 	return [newName, newExt];
-}
+};
+
 
 /*metodos globales*/
 var loadFiles, changeDir, move, copy, initialLoad, rename;
