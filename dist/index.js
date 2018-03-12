@@ -34,7 +34,7 @@ this.app = app;
 /*metodos locales*/
 
 var createWin = () => {
-	win = new BrowserWindow({ width: 800, height: 600, menu: false });	
+	win = new BrowserWindow({ width: 800, height: 600, menu: false });
 		win.loadURL(url.format({
 			pathname: path.join(pathToLoad, 'index.html'),
 			protocol: 'file:',
@@ -53,8 +53,10 @@ var closeWin = () => app.quit();
 var copyRecursive = (src, dst) => {
 	let dir = fs.readdirSync(src);
 	for (let i = 0; i<dir.length; i++){
-		if (fs.lstatSync(src + dir[i]).isFile())
-			fs.createReadStream(src + dir[i]).pipe(fs.createWriteStream(dst +"/"+ dir[i]));
+		if (fs.lstatSync(src + dir[i]).isFile()){
+			name = renameOneFile(dst, dir[i]);
+			fs.createReadStream(src + dir[i]).pipe(fs.createWriteStream(name));
+		}
 		else if (fs.lstatSync(src + dir[i]).isDirectory())
 			fs.mkdir(dst +"/"+dir[i], '0777', (e)=>{
 				if (e) return console.log(e);
@@ -62,26 +64,25 @@ var copyRecursive = (src, dst) => {
 			});
 	}
 };
-var renameOneFile = (oldName, newName) => {	
-	let ext, name, cond = true, reg = /(\w*)\_(\d*)/;
-	while(cond){		
+var renameOneFile = (path, newName) => {
+	let ext, name, cond = true, reg = /([\wÁÉÍÓÚáéíóúÄËÏÖÜäëïöüÀÈÌÒÙàèìòù]*[\s\.]?)*_(\d*)/;	
+	let i = 0;
+	while(cond && i<10){		
+		console.log(i);
+		console.log(`${path}${newName}`)
+		i++;
 		try{
-			fs.lstatSync(`${currentPath}${newName}`);			
+			fs.lstatSync(`${path}${newName}`);
 		}
 		catch (e){
-			cond = (e.errno === -2) ?  false: true;			
+			console.log("no es un archivo o folder")
+			cond = (e.errno === -2) ?  false: true;
 			continue;
 		}
-		newName = (typeof(newName) === 'string') ? newName.split(".") : newName;
-		if (newName.length >1){			
-			ext = "." + newName.slice(-1);	
-			name = newName.slice(0,-1);
-		}
-		else {			
-			ext = '';
-			name = newName;
-		}		
-		name = name.join(".");
+		newName = (typeof(newName) === 'string') ? separateName(newName) : newName;
+		name = newName[0];
+		ext = newName[1];				
+		console.log(name)
 		if (!reg.test(name)){
 			newName = `${name}_1${ext}`;			
 		}
@@ -89,47 +90,58 @@ var renameOneFile = (oldName, newName) => {
 			let match = name.match(reg);
 			newName = `${match[1]}_${parseInt(match[2])+1}${ext}`;			
 		}		
-	}	
-	fs.rename(`${currentPath}${oldName}`, `${currentPath}${newName}`, (err) => {if (err) console.log(err)})
+	}
+	console.log(`ha salido para devolver ${path}${newName}`)
+	return `${path}${newName}`;
 };
 var generateStringNewName = (files, newName, oldExt) => {
 	/*
 	 * Función encargada de evaluar la extensión de los archivos
-	 * files [String]
-	 * devuelve true si es la misma o false en caso contrario
+	 * files [String] -> Conjunto de archivos a cambiar
+	 * newName: string ->El nombre que se desea
+	 * oldExt: string -> La extensión que se quiere cambiar
+	 * devuelve [String] -> con los nuevos nombres
 	*/
+
 	let ext = {},
 		name = [],
 		str = '',
-		newFiles = []
+		newFiles = [];
+	console.log(oldExt);
 	for (let i = 0; i<files.length; i++){
 		let f = files[i];
 		name = f.split(".");
-		let extKey = (name.length > 1) ? name.slice(-1) : '';
+		let extKey = (name.length > 1) ? name.slice(-1)[0] : '';
+
 		if (!ext[extKey]) ext[extKey] = [];
-		ext[extKey].push(true)
+		ext[extKey].push(true);
 		str = `${newName[0]}_${ext[extKey].length}${(extKey === oldExt) ? newName[1] : "." + extKey}`;
-		newFiles.push(str)		
-	}
+		newFiles.push(str)
+	}	
 	return newFiles;
 };
 var separateName = (name) => {
 	/*
-	 * Función encargada de determinar si el nuevo nombre introducido tiene extensión o no
+	 * Función encargada de determinar si el nuevo nombre introducido
+	 * tiene extensión o no
 	 * name: String
-	 * -> [String]  con el valor del nombre y la ext por separado
+	 * return [String]  con el valor del nombre y la ext por separado
 	*/
-	let newName = name.split("."),
-		newExt = '';
-	if (newName.length >=2){
-		newExt = "." + newName.slice(-1);		
-		newName = newName.slice(0, -1);
+	
+	let reg = /(.*)(\.\w*)$/,
+		match = [],
+		newName = '',
+		ext = '';
+	match = name.match(reg);
+	if (!match){
+		newName = name;
+		ext = '';
 	}
-	else{
-		newName =  newName[0];
-		newExt = '';
+	else {
+		newName = match[1];
+		ext = match[2]
 	}
-	return [newName, newExt];
+	return [newName, ext];
 };
 
 
@@ -173,12 +185,17 @@ external.move = move = (paths) => {
 external.copy = copy = (files) => {
 	let path = currentPath,
 		dst = path + files[1]+'/',
-		src = files[0];	
+		src = files[0],
+		name = '';	
 	for (let i = 0; i<src.length; i++){
-		if (fs.lstatSync(`${path}${src[i]}`).isFile())
-			fs.createReadStream(`${path}${src[i]}`).pipe(fs.createWriteStream(`${dst}${src[i]}`));
-		else if (fs.lstatSync(`${path}${src[i]}`).isDirectory()){
-			fs.mkdirSync(dst+src[i], '777');
+		if (fs.lstatSync(`${path}${src[i]}`).isFile()){
+			name = renameOneFile(dst, src[i]);			
+			console.log(`${path}${src[i]} -> ${name}`)
+			fs.createReadStream(`${path}${src[i]}`).pipe(fs.createWriteStream(name));
+		}
+		else if (fs.lstatSync(`${path}${src[i]}`).isDirectory()){			
+			try{fs.mkdirSync(dst+src[i], '777');}
+			catch(e){if (e.errno !== -17) console.log(e)}
 			copyRecursive((path+src[i]+'/'), dst+src[i]);
 		}
 	}
@@ -199,7 +216,7 @@ external.initialLoad = initialLoad = (option) => {
 external.rename = rename = (fls)  => {
 	/*
 	 *Función encargada de cambiar el nombre de los archivos
-	 *fls: Array
+	 *fls: [mix]
 	 *fls[0]: [String] -> Contiene la lista de archivos que se quiere renombrar
 	 *fls[1]: String -> El nuevo nombre del archivo.
 	 *fls[2]: Bool -> Si la ext se ha modificado
@@ -208,15 +225,19 @@ external.rename = rename = (fls)  => {
 		name = fls[1],
 		extMod = fls[2],
 		newName,
-		newNames;	
+		newNames,
+		names = [];
 	if (files.length === 1){
-		renameOneFile(files[0], name);
+		name = renameOneFile(currentPath, name);
+		fs.rename(`${currentPath}/${files[0]}`, name, (err) => {if (err) console.log(err)});
 		return [loadFiles()[0]];
 	}
 	newName = separateName(name);	
 	newNames = generateStringNewName(files, newName, extMod);
-	for (let i = 0; i<files.length;i++)
-		renameOneFile(files[i], newNames[i]);	
+	for (let i = 0; i<files.length;i++){
+		name = renameOneFile(currentPath, newNames[i]);
+		fs.rename(`${currentPath}/${files[i]}`, name, (err) => {if (err) console.log(err)})
+	}
 	return [loadFiles()[0]];
 }
 //load plugin
