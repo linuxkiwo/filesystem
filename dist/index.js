@@ -15,18 +15,19 @@ const ConfigPath = '../../commonModules/config.json';
 const ProgramName = "fileSystem";
 
 let l = new LoadApp(__dirname, ConfigPath, ProgramName, process.argv.splice(2));
-
 /*Variables globales*/
 var win,
 	currentPath,
 	dirList,
 	currentFiles,
 	homeName = "Carpeta personal",
-	homeDir = l.homeDir,
 	stringFile = "",
 	config = {},
 	modularLibs = {},
-	pathToLoad = l.pathToLoad;
+	pathToLoad = l.pathToLoad,
+	homeDir,
+	trushPath = '';
+	// trushPath = `/home/lucas/Documentos/universidad/TFG/electron/DE_v2/trush/`;
 
 /*Declaración de las funciones globales*/
 var external = this.external = {};
@@ -143,10 +144,24 @@ var separateName = (name) => {
 	}
 	return [newName, ext];
 };
-
+var removeRecursive = (files, path) => {
+	/*
+	 * Función encargada de borrar la lista de archivos que se ha indicado
+	*/
+	for (let f of files){
+		console.log(`${path}${f}`)
+		if (fs.lstatSync(`${path}${f}`).isFile())
+			// fs.unlink(`${path}${f}`, (e)=> (e) ? console.log(e) : null);
+			fs.unlink(`${path}${f}`, (e)=> console.log("se ha borrado el archivo "+f));
+		else if (fs.lstatSync(`${path}${f}`).isDirectory()){
+			removeRecursive(fs.readdirSync(`${path}${f}`), `${path}${f}/`);
+			fs.rmdir(`${path}${f}`, (e) => (e.errno ===-39 ) ? removeRecursive([f],`${path}`): console.log(e.errno));
+		}
+	}
+};
 
 /*metodos globales*/
-var loadFiles, changeDir, move, copy, initialLoad, rename;
+var loadFiles, changeDir, move, copy, initialLoad, rename, remove;
 
 external.loadFiles = loadFiles = (dir = '') => {
 	currentPath = (dir !== '') ? (currentPath + dir[0] + '/') : currentPath;
@@ -171,17 +186,21 @@ external.loadFiles = loadFiles = (dir = '') => {
 
 external.changeDir = changeDir = (name) => {
 	let path = currentPath.split('/'), arr;
-	currentPath = (name != homeName) ? path.slice(0, path.indexOf(name[0]) + 1).join("/") + '/' : homeDir;
+	currentPath = (name[0] !== homeName) ? path.slice(0, path.indexOf(name[0]) + 1).join("/") + '/' : homeDir;
 	arr = (name != homeName) ? path.slice(1, path.indexOf(name[0]) + 1) : [];
 	return [loadFiles()[0], arr];
 };
 
 external.move = move = (paths) => {	
-	for (let i = 0; i<paths[0].length; i++){		
-		fs.rename(`${currentPath}${paths[0][i]}`, `${currentPath}${paths[1]}/${paths[0][i]}`, (err) => {if (err) console.log(err);});
+	let files = paths[0],
+		dst = (paths[1] !== 'trush') ? paths[1] : trushPath,
+		name = '';
+	for (let i = 0; i<files.length; i++){
+		name = renameOneFile(dst, files[i]);
+		console.log(name);
+		fs.rename(`${currentPath}${files[i]}`, name, (err) => {if (err) console.log(err);});
 	}
 };
-
 external.copy = copy = (files) => {
 	let path = currentPath,
 		dst = path + files[1]+'/',
@@ -190,7 +209,6 @@ external.copy = copy = (files) => {
 	for (let i = 0; i<src.length; i++){
 		if (fs.lstatSync(`${path}${src[i]}`).isFile()){
 			name = renameOneFile(dst, src[i]);			
-			console.log(`${path}${src[i]} -> ${name}`)
 			fs.createReadStream(`${path}${src[i]}`).pipe(fs.createWriteStream(name));
 		}
 		else if (fs.lstatSync(`${path}${src[i]}`).isDirectory()){			
@@ -200,9 +218,11 @@ external.copy = copy = (files) => {
 		}
 	}
 };
-
 external.initialLoad = initialLoad = (option) => {
-	homeDir = (!homeDir) ? l.homeDir : homeDir;	
+	homeDir = (!homeDir) ? l.homeDir : homeDir;
+	pathToLoad = l.pathToLoad;
+	trushPath = `${homeDir}.local/share/Trash/files/`;
+	console.log(homeDir);
 	switch (option){
 		case 'image':
 			currentPath = homeDir + 'Imágenes';
@@ -212,7 +232,6 @@ external.initialLoad = initialLoad = (option) => {
 	}	
 	return [loadFiles()[0], currentPath.split("/").slice(1)];
 };
-
 external.rename = rename = (fls)  => {
 	/*
 	 *Función encargada de cambiar el nombre de los archivos
@@ -240,9 +259,11 @@ external.rename = rename = (fls)  => {
 	}
 	return [loadFiles()[0]];
 }
+external.remove = remove = (files) => {
+	removeRecursive(files, currentPath);
+}
 //load plugin
 l.loadModules(this, this)
-
 
 var comunication = new EventServer(external);
 /*eventos*/

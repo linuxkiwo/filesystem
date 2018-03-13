@@ -7,15 +7,17 @@ var $ = require('./../../commonModules/jquery');
 let contentMenuConstruct = {
 	".folder": {
 		"Abrir": "mainScope.goInto",
-		"Borrar": "mainScope.toDel",
+		"Enviar a la papelera de reciclaje": "mainScope.sentToTrush",
 		"Cambiar nombre": "mainScope.changeName",
+		"Borrar permanentemente": "mainScope.remove"
 		"Cortar": "mainScope.prepareToCut",
 		"Copiar": "mainScope.prepareToCopy",
 		"Propiedades": "alert('Opción no permirida de momento')"
 	},
 	".file": {
-		"Borrar": "mainScope.toDel",
+		"Enviar a la papelera de reciclaje": "mainScope.sentToTrush",
 		"Cambiar nombre": "mainScope.changeName",
+		"Borrar permanentemente": "mainScope.remove"
 		"Cortar": "mainScope.prepareToCut",
 		"Copiar": "mainScope.prepareToCopy",
 		"Propiedades": "alert('Opción no permirida de momento')"
@@ -39,7 +41,7 @@ external.drawFiles = (args) => {
 	$('main ul').html(str);
 	/*Cambia el menú de navegación */
 	if (args.length >=2){
-		str = '<li class="track">Carpeta Personal</li>';
+		str = '<li class="track">Carpeta personal</li>';
 		let path = args[1];
 		mainScope.currentPath = "/"+path.join("/");
 		for (var i=2; i< path.length;i++)
@@ -88,7 +90,26 @@ mainScope.evalKeyMap = () =>{
 	}
 	else if (mainScope.mapKey[113]) //press f2
 		mainScope.changeName();
-}
+	else if (mainScope.mapKey[46] && mainScope.mapKey[16]) // press shift + supr
+		mainScope.remove();
+	else if (mainScope.mapKey[46]) //press supr
+		mainScope.sentToTrush();
+	
+};
+mainScope.getName = (src) => {
+	/*
+	 * Esta función se encarga de devolver un array con los nombres
+	 * de todos los elementos seleccionados
+	 * src:Object
+	 * devuelve el array
+	*/
+	let toCopy = [];
+	for (let f in src)
+		for (let i = 0; i<src[f].length; i++)
+			toCopy.push($(src[f][i]).find("p").html());
+	return toCopy;
+		
+};
 mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	/*
 	 *Esta función se encarga de:
@@ -97,12 +118,8 @@ mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	 *Si la tecla cntrl está pulsada, se copian dentro de la carpeta,
 	 *Si está sin pulsar, se mueven
 	*/
-	let toCopy = [],
-		acction = (mainScope.isCopping) ? "copy" : "move";
-	for (let f in src)
-		for (let i = 0; i<src[f].length; i++){
-			toCopy.push($(src[f][i]).find("p").html())
-		}
+	let toCopy = [],acction = (mainScope.isCopping) ? "copy" : "move";
+	toCopy = getName(src)
 	comunication.send(acction, null, [toCopy, dst]);
 	if (acction === "move")
 		mainScope.deleteRenderMove(src)
@@ -119,6 +136,18 @@ mainScope.paste = () => {
 	let dst = $(mainScope.selected['folder'][0]).find("p").html();
 	mainScope.sentTo(dst, mainScope.toCopy);
 };
+mainScope.sentToTrush = () => {
+	mainScope.prepareToCut();
+	mainScope.sentTo('trush', mainScope.toCopy);
+};
+mainScope.remove = () => {
+	console.log("remove")
+	mainScope.prepareToCut();
+	let toDel = mainScope.getName(mainScope.toCopy);
+	console.log(toDel)
+	comunication.send('remove', 'drawFiles', toDel);	
+}
+
 /*metodos locales llamados por eventos*/
 mainScope.goInto = (e)=> {
 	/*
@@ -159,9 +188,7 @@ mainScope.select = (e)=> {
 	 *Esta función se encarga de:
 	 *seleccionar o deseleccionar carpeta o archivos
 	*/
-	if (e.which === 2) return;
-	e.stopPropagation();
-	e.preventDefault();
+	if (e.which === 2) return;	
 	// si no está pulsado cntr y no se está arrastrando, se deselecciona
 	if (!mainScope.ctrlPress && e.originalEvent.type !== "dragstart") mainScope.unselect();
 	// Si el elemento ya estába se seleccionado, se sale de la función deseleccionado el elemento
@@ -176,6 +203,7 @@ mainScope.onDrag = (e) => {
 	/*
 	 *Función encargada de posicionar en un lugar concreto los elementos seleccionados
 	*/
+	console.log("onDrag")
 	let x = e.clientX, y = e.clientY;
 	for (let f in mainScope.selected)
 		for (let i = 0; i< f.length; i++)
@@ -209,8 +237,7 @@ mainScope.endDrop = (e) =>{
 mainScope.unselect = () => {
 	/*
 	 *Función que permite la deselección de un arhivo o carpeta
-	*/
-	console.info("entra?")
+	*/	
 	for (let f in mainScope.selected){
 		for (let i = mainScope.selected[f].length-1; i>=0; i--){
 			$(mainScope.selected[f][i]).removeClass("selected");			
@@ -237,16 +264,16 @@ mainScope.aceptName = (e) => {
 	//ext1 = $(e.currentTarget).attr("name").split(".").slice(-1).join("."), $(e.currentTarget).html().split(".").slice(-1).join(".")];
 	let ext1 = $(e.currentTarget).attr("name").split("."),
 		ext2 = name.split(".");
-	ext.push((ext1.length >=2)? ext1.slice(-1)[0]:'')
-	ext.push((ext2.length >=2)? ext2.slice(-1)[0]:'')
-	extMode = (ext[0] == ext[1]) ? false : ext[0]
-	console.log("extMode: " + extMode)
+	ext.push((ext1.length >=2)? ext1.slice(-1)[0]:'');
+	ext.push((ext2.length >=2)? ext2.slice(-1)[0]:'');
+	extMode = (ext[0] == ext[1]) ? false : ext[0];	
 	comunication.send('rename', 'drawFiles', [toRename, name, extMode]);
 };
 mainScope.pressKey = (e)=> {
 	mainScope.ctrlPress = (e.keyCode === 17) ? true : false;
 	mainScope.mapKey[e.keyCode] = true;
 	mainScope.evalKeyMap();
+	console.log(e.keyCode);
 };
 mainScope.keyUp = (e)=>  {
 	if (e.keyCode === 17) mainScope.ctrlPress = false;
