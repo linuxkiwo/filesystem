@@ -26,8 +26,7 @@ var win,
 	modularLibs = {},
 	pathToLoad = l.pathToLoad,
 	homeDir,
-	trushPath = '';
-	// trushPath = `/home/lucas/Documentos/universidad/TFG/electron/DE_v2/trush/`;
+	trashPath = '';
 
 /*Declaración de las funciones globales*/
 var external = this.external = {};
@@ -60,7 +59,7 @@ var copyRecursive = (src, dst) => {
 		}
 		else if (fs.lstatSync(src + dir[i]).isDirectory())
 			fs.mkdir(dst +"/"+dir[i], '0777', (e)=>{
-				if (e) return console.log(e);
+				if (e) return console.error(e);
 				copyRecursive((src + dir[i] + '/'), dst +"/"+ dir[i]);
 			});
 	}
@@ -69,21 +68,17 @@ var renameOneFile = (path, newName) => {
 	let ext, name, cond = true, reg = /([\wÁÉÍÓÚáéíóúÄËÏÖÜäëïöüÀÈÌÒÙàèìòù]*[\s\.]?)*_(\d*)/;	
 	let i = 0;
 	while(cond && i<10){		
-		console.log(i);
-		console.log(`${path}${newName}`)
 		i++;
 		try{
 			fs.lstatSync(`${path}${newName}`);
 		}
 		catch (e){
-			console.log("no es un archivo o folder")
 			cond = (e.errno === -2) ?  false: true;
 			continue;
 		}
 		newName = (typeof(newName) === 'string') ? separateName(newName) : newName;
 		name = newName[0];
 		ext = newName[1];				
-		console.log(name)
 		if (!reg.test(name)){
 			newName = `${name}_1${ext}`;			
 		}
@@ -92,7 +87,6 @@ var renameOneFile = (path, newName) => {
 			newName = `${match[1]}_${parseInt(match[2])+1}${ext}`;			
 		}		
 	}
-	console.log(`ha salido para devolver ${path}${newName}`)
 	return `${path}${newName}`;
 };
 var generateStringNewName = (files, newName, oldExt) => {
@@ -108,7 +102,6 @@ var generateStringNewName = (files, newName, oldExt) => {
 		name = [],
 		str = '',
 		newFiles = [];
-	console.log(oldExt);
 	for (let i = 0; i<files.length; i++){
 		let f = files[i];
 		name = f.split(".");
@@ -149,13 +142,11 @@ var removeRecursive = (files, path) => {
 	 * Función encargada de borrar la lista de archivos que se ha indicado
 	*/
 	for (let f of files){
-		console.log(`${path}${f}`)
 		if (fs.lstatSync(`${path}${f}`).isFile())
-			// fs.unlink(`${path}${f}`, (e)=> (e) ? console.log(e) : null);
-			fs.unlink(`${path}${f}`, (e)=> console.log("se ha borrado el archivo "+f));
+			fs.unlink(`${path}${f}`, (e)=> (e) ? console.error(e) : null);
 		else if (fs.lstatSync(`${path}${f}`).isDirectory()){
 			removeRecursive(fs.readdirSync(`${path}${f}`), `${path}${f}/`);
-			fs.rmdir(`${path}${f}`, (e) => (e.errno ===-39 ) ? removeRecursive([f],`${path}`): console.log(e.errno));
+			fs.rmdir(`${path}${f}`, (e) => (e.errno ===-39 ) ? removeRecursive([f],`${path}`): console.error(e));
 		}
 	}
 };
@@ -193,12 +184,11 @@ external.changeDir = changeDir = (name) => {
 
 external.move = move = (paths) => {	
 	let files = paths[0],
-		dst = (paths[1] !== 'trush') ? paths[1] : trushPath,
+		dst = (paths[1] !== 'trash') ? paths[1] : trashPath,
 		name = '';
 	for (let i = 0; i<files.length; i++){
 		name = renameOneFile(dst, files[i]);
-		console.log(name);
-		fs.rename(`${currentPath}${files[i]}`, name, (err) => {if (err) console.log(err);});
+		fs.rename(`${currentPath}${files[i]}`, name, (err) => {if (err) console.error(err);});
 	}
 };
 external.copy = copy = (files) => {
@@ -213,7 +203,7 @@ external.copy = copy = (files) => {
 		}
 		else if (fs.lstatSync(`${path}${src[i]}`).isDirectory()){			
 			try{fs.mkdirSync(dst+src[i], '777');}
-			catch(e){if (e.errno !== -17) console.log(e)}
+			catch(e){if (e.errno !== -17) console.error(e)}
 			copyRecursive((path+src[i]+'/'), dst+src[i]);
 		}
 	}
@@ -221,8 +211,7 @@ external.copy = copy = (files) => {
 external.initialLoad = initialLoad = (option) => {
 	homeDir = (!homeDir) ? l.homeDir : homeDir;
 	pathToLoad = l.pathToLoad;
-	trushPath = `${homeDir}.local/share/Trash/files/`;
-	console.log(homeDir);
+	trashPath = `${homeDir}.local/share/Trash/files/`;
 	switch (option){
 		case 'image':
 			currentPath = homeDir + 'Imágenes';
@@ -248,14 +237,14 @@ external.rename = rename = (fls)  => {
 		names = [];
 	if (files.length === 1){
 		name = renameOneFile(currentPath, name);
-		fs.rename(`${currentPath}/${files[0]}`, name, (err) => {if (err) console.log(err)});
+		fs.rename(`${currentPath}/${files[0]}`, name, (err) => {if (err) console.error(err)});
 		return [loadFiles()[0]];
 	}
 	newName = separateName(name);	
 	newNames = generateStringNewName(files, newName, extMod);
 	for (let i = 0; i<files.length;i++){
 		name = renameOneFile(currentPath, newNames[i]);
-		fs.rename(`${currentPath}/${files[i]}`, name, (err) => {if (err) console.log(err)})
+		fs.rename(`${currentPath}/${files[i]}`, name, (err) => {if (err) console.error(err)})
 	}
 	return [loadFiles()[0]];
 }

@@ -138,13 +138,11 @@ mainScope.paste = () => {
 };
 mainScope.sentToTrush = () => {
 	mainScope.prepareToCut();
-	mainScope.sentTo('trush', mainScope.toCopy);
+	mainScope.sentTo('trash', mainScope.toCopy);
 };
 mainScope.remove = () => {
-	console.log("remove")
 	mainScope.prepareToCut();
 	let toDel = mainScope.getName(mainScope.toCopy);
-	console.log(toDel)
 	comunication.send('remove', 'drawFiles', toDel);	
 }
 
@@ -203,7 +201,6 @@ mainScope.onDrag = (e) => {
 	/*
 	 *Función encargada de posicionar en un lugar concreto los elementos seleccionados
 	*/
-	console.log("onDrag")
 	let x = e.clientX, y = e.clientY;
 	for (let f in mainScope.selected)
 		for (let i = 0; i< f.length; i++)
