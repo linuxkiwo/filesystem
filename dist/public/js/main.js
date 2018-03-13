@@ -9,7 +9,7 @@ let contentMenuConstruct = {
 		"Abrir": "mainScope.goInto",
 		"Enviar a la papelera de reciclaje": "mainScope.sentToTrush",
 		"Cambiar nombre": "mainScope.changeName",
-		"Borrar permanentemente": "mainScope.remove"
+		"Borrar permanentemente": "mainScope.remove",
 		"Cortar": "mainScope.prepareToCut",
 		"Copiar": "mainScope.prepareToCopy",
 		"Propiedades": "alert('Opción no permirida de momento')"
@@ -17,7 +17,7 @@ let contentMenuConstruct = {
 	".file": {
 		"Enviar a la papelera de reciclaje": "mainScope.sentToTrush",
 		"Cambiar nombre": "mainScope.changeName",
-		"Borrar permanentemente": "mainScope.remove"
+		"Borrar permanentemente": "mainScope.remove",
 		"Cortar": "mainScope.prepareToCut",
 		"Copiar": "mainScope.prepareToCopy",
 		"Propiedades": "alert('Opción no permirida de momento')"
@@ -119,7 +119,7 @@ mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	 *Si está sin pulsar, se mueven
 	*/
 	let toCopy = [],acction = (mainScope.isCopping) ? "copy" : "move";
-	toCopy = getName(src)
+	toCopy = mainScope.getName(src)
 	comunication.send(acction, null, [toCopy, dst]);
 	if (acction === "move")
 		mainScope.deleteRenderMove(src)

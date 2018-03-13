@@ -50,18 +50,25 @@ var createWin = () => {
 
 var closeWin = () => app.quit();
 
-var copyRecursive = (src, dst) => {
-	let dir = fs.readdirSync(src);
-	for (let i = 0; i<dir.length; i++){
-		if (fs.lstatSync(src + dir[i]).isFile()){
-			name = renameOneFile(dst, dir[i]);
-			fs.createReadStream(src + dir[i]).pipe(fs.createWriteStream(name));
+var copyRecursive = (files, src, dst) => {
+	/*
+	 * Función encargada de copiar de forma recursiva una lista de archivos
+	 * files: [String] -> Contiene una lista de los nombres que se deben copiar
+	 * src: String  -> La ruta a esos archivos
+	 * dst: String -> La ruta de la carpeta en la que se deben copiar
+	*/
+	let name = '';
+	for (let f of files){
+		if (fs.lstatSync(`${src}${f}`).isFile()){
+			name = renameOneFile(`${dst}`, f);			
+			fs.createReadStream(`${src}${f}`).pipe(fs.createWriteStream(`${name}`));
 		}
-		else if (fs.lstatSync(src + dir[i]).isDirectory())
-			fs.mkdir(dst +"/"+dir[i], '0777', (e)=>{
+		else if (fs.lstatSync(`${src}${f}`).isDirectory()){			
+			fs.mkdir(`${dst}${f}`, '0755', (e)=>{
 				if (e) return console.error(e);
-				copyRecursive((src + dir[i] + '/'), dst +"/"+ dir[i]);
+				copyRecursive(fs.readdirSync(`${src}${f}/`), `${src}${f}/`, `${dst}${f}/`);
 			});
+		}
 	}
 };
 var renameOneFile = (path, newName) => {
@@ -192,21 +199,9 @@ external.move = move = (paths) => {
 	}
 };
 external.copy = copy = (files) => {
-	let path = currentPath,
-		dst = path + files[1]+'/',
-		src = files[0],
-		name = '';	
-	for (let i = 0; i<src.length; i++){
-		if (fs.lstatSync(`${path}${src[i]}`).isFile()){
-			name = renameOneFile(dst, src[i]);			
-			fs.createReadStream(`${path}${src[i]}`).pipe(fs.createWriteStream(name));
-		}
-		else if (fs.lstatSync(`${path}${src[i]}`).isDirectory()){			
-			try{fs.mkdirSync(dst+src[i], '777');}
-			catch(e){if (e.errno !== -17) console.error(e)}
-			copyRecursive((path+src[i]+'/'), dst+src[i]);
-		}
-	}
+	let dst = currentPath + files[1]+'/',
+		src = files[0];		
+	copyRecursive(src, currentPath, dst);
 };
 external.initialLoad = initialLoad = (option) => {
 	homeDir = (!homeDir) ? l.homeDir : homeDir;
