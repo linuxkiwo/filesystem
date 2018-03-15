@@ -1,6 +1,5 @@
 'use strict';
 /*Importación de módulos */
-
 const { app, BrowserWindow } = require('electron');
 const fs = require('fs')
 const path = require('path');
@@ -28,9 +27,12 @@ var win,
 	homeDir,
 	trashPath = '';
 
+
+
 /*Declaración de las funciones globales*/
 var external = this.external = {};
 this.app = app;
+this.BrowserWindow = BrowserWindow;
 /*metodos locales*/
 
 var createWin = () => {
@@ -40,12 +42,11 @@ var createWin = () => {
 			protocol: 'file:',
 			slashes: true
 		}));
-		
 	win.webContents.openDevTools();
 	win.on('closed', () => {
 		l.clearBuffer();		
 		win = null
-	});
+	});	
 };
 
 var closeWin = () => app.quit();
@@ -159,7 +160,7 @@ var removeRecursive = (files, path) => {
 };
 
 /*metodos globales*/
-var loadFiles, changeDir, move, copy, initialLoad, rename, remove;
+var loadFiles, changeDir, move, copy, initialLoad, rename, remove, getProperties;
 
 external.loadFiles = loadFiles = (dir = '') => {
 	currentPath = (dir !== '') ? (currentPath + dir[0] + '/') : currentPath;
@@ -204,6 +205,13 @@ external.copy = copy = (files) => {
 	copyRecursive(src, currentPath, dst);
 };
 external.initialLoad = initialLoad = (option) => {
+	// let screen = require('electron').screen,
+	// 	screenDisplay = screen.getPrimaryDisplay(),
+	// 	screenAllDispaly = screen.getAllDisplays()//.workArea;
+	// console.log(screenDisplay)
+	// console.log("--------------")
+	// console.log(screenAllDispaly)
+	// // comunication.send(win, 'getScreenResolution', screen)
 	homeDir = (!homeDir) ? l.homeDir : homeDir;
 	pathToLoad = l.pathToLoad;
 	trashPath = `${homeDir}.local/share/Trash/files/`;
@@ -242,10 +250,25 @@ external.rename = rename = (fls)  => {
 		fs.rename(`${currentPath}/${files[i]}`, name, (err) => {if (err) console.error(err)})
 	}
 	return [loadFiles()[0]];
-}
-external.remove = remove = (files) => {
-	removeRecursive(files, currentPath);
-}
+};
+external.remove = remove = (files) => removeRecursive(files, currentPath);
+external.getProperties = getProperties = (files) => {
+	fs.lstat(currentPath + files[0], (e, s) =>{
+		console.log(s);
+		//Pantalla 1
+		console.log(`nombre: ${files[0]}`);
+		console.log(`ruta: ${currentPath}`)
+		console.log(`tamaño: ${s.size}`);
+		//Pantalla 2
+		console.log(`última fecha de acceso ${s.atime}`);
+		console.log(`última fecha de modificación en el contendido ${s.mtime}`);
+		console.log(`última fecha de modificación ${s.ctime}`);
+		console.log(`Fecha de creación: ${s.birthtime}`);
+		//pantalla 3
+		console.log(`tipo de archivo: ${s.mode.toString(8).slice(0,3)}`);
+		console.log(`permisos: ${s.mode.toString(8).slice(3)}`);
+	});
+};
 //load plugin
 l.loadModules(this, this)
 

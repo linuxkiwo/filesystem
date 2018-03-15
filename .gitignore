@@ -8,3 +8,5 @@ toDel.js
 prueba*
 /dev/scss/style.scss.map
 ./.buffer
+/node_modules/selectfile/index.css.map
+/dist/public/html/

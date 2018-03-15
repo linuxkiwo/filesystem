@@ -12,7 +12,7 @@ let contentMenuConstruct = {
 		"Borrar permanentemente": "mainScope.remove",
 		"Cortar": "mainScope.prepareToCut",
 		"Copiar": "mainScope.prepareToCopy",
-		"Propiedades": "alert('Opción no permirida de momento')"
+		"Propiedades": "mainScope.askForProperties"
 	},
 	".file": {
 		"Enviar a la papelera de reciclaje": "mainScope.sentToTrush",
@@ -20,7 +20,7 @@ let contentMenuConstruct = {
 		"Borrar permanentemente": "mainScope.remove",
 		"Cortar": "mainScope.prepareToCut",
 		"Copiar": "mainScope.prepareToCopy",
-		"Propiedades": "alert('Opción no permirida de momento')"
+		"Propiedades": "mainScope.askForProperties"
 	}
 };
 const contentMenu = new ContentMenu(contentMenuConstruct);
@@ -36,7 +36,7 @@ mainScope.currentPath = ''
 var external = {};
 
 external.drawFiles = (args) => {
-	/*Lista los archivos y carpetas que hay en ese direcorio*/
+	/*Lista los archivos y carpetas que hay en ese direcorio*/	
 	let str = args[0];
 	$('main ul').html(str);
 	/*Cambia el menú de navegación */
@@ -49,7 +49,6 @@ external.drawFiles = (args) => {
 		$('.topBar').html(str);
 	}
 };
-
 /*metodos locales*/
 mainScope.unselectOne = (name) => {
 	/*
@@ -94,7 +93,6 @@ mainScope.evalKeyMap = () =>{
 		mainScope.remove();
 	else if (mainScope.mapKey[46]) //press supr
 		mainScope.sentToTrush();
-	
 };
 mainScope.getName = (src) => {
 	/*
@@ -108,7 +106,6 @@ mainScope.getName = (src) => {
 		for (let i = 0; i<src[f].length; i++)
 			toCopy.push($(src[f][i]).find("p").html());
 	return toCopy;
-		
 };
 mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	/*
@@ -144,7 +141,11 @@ mainScope.remove = () => {
 	mainScope.prepareToCut();
 	let toDel = mainScope.getName(mainScope.toCopy);
 	comunication.send('remove', 'drawFiles', toDel);	
-}
+};
+mainScope.askForProperties = () => {
+	let names = mainScope.getName(mainScope.selected)
+	comunication.send('getProperties', null, names)
+};
 
 /*metodos locales llamados por eventos*/
 mainScope.goInto = (e)=> {
