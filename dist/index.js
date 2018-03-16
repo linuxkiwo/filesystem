@@ -25,7 +25,8 @@ var win,
 	modularLibs = {},
 	pathToLoad = l.pathToLoad,
 	homeDir,
-	trashPath = '';
+	trashPath = '',
+	modal;
 
 
 
@@ -253,8 +254,9 @@ external.rename = rename = (fls)  => {
 };
 external.remove = remove = (files) => removeRecursive(files, currentPath);
 external.getProperties = getProperties = (files) => {
+	modal = new l.bcknd.Modal_Main(__dirname+'/external/properties/index.html');
 	fs.lstat(currentPath + files[0], (e, s) =>{
-		console.log(s);
+		/*console.log(s);
 		//Pantalla 1
 		console.log(`nombre: ${files[0]}`);
 		console.log(`ruta: ${currentPath}`)
@@ -266,7 +268,8 @@ external.getProperties = getProperties = (files) => {
 		console.log(`Fecha de creación: ${s.birthtime}`);
 		//pantalla 3
 		console.log(`tipo de archivo: ${s.mode.toString(8).slice(0,3)}`);
-		console.log(`permisos: ${s.mode.toString(8).slice(3)}`);
+		console.log(`permisos: ${s.mode.toString(8).slice(3)}`);*/
+	modal.createModal.call(this, __dirname+'/external/properties/index.html');
 	});
 };
 //load plugin
