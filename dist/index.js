@@ -159,7 +159,42 @@ var removeRecursive = (files, path) => {
 		}
 	}
 };
-
+var formatDate = (date) =>{
+	let d = new Date(date),
+		form = d.toISOString().split("T"),
+		day = form[0],
+		time = form[1].split(".")[0];
+	return `${day} ${time}`;
+};
+var getFileInfo = (x) => {
+	/*
+	 * Esta función se encarga de gestionar la información del inodo
+	 * tipo de inodo, permisos, etc...
+	 * La información de la que se extrae que significa cada número
+	 * se ha obtenido de https://github.com/nodejs/node-v0.x-archive/issues/3045
+	 * x:Number -> número que contiene la información del inodo.
+	 * return [multiple] String (tipo de archivo) Int (permisos)
+	*/
+	let type, permission;
+	type = ((a)=>{
+		a.toString();
+		switch (a){
+			case '40':
+				return 'Carpeta';
+				break;
+			case '100':
+				return 'file';
+				break;
+			case '120':
+				return 'symlink';
+				break;
+			default:
+				return "";
+		}
+	})(x.slice(0, -3));;
+	permission = x.slice(-3);
+	return [type, permission]
+}
 /*metodos globales*/
 var loadFiles, changeDir, move, copy, initialLoad, rename, remove, getProperties;
 
@@ -206,13 +241,6 @@ external.copy = copy = (files) => {
 	copyRecursive(src, currentPath, dst);
 };
 external.initialLoad = initialLoad = (option) => {
-	// let screen = require('electron').screen,
-	// 	screenDisplay = screen.getPrimaryDisplay(),
-	// 	screenAllDispaly = screen.getAllDisplays()//.workArea;
-	// console.log(screenDisplay)
-	// console.log("--------------")
-	// console.log(screenAllDispaly)
-	// // comunication.send(win, 'getScreenResolution', screen)
 	homeDir = (!homeDir) ? l.homeDir : homeDir;
 	pathToLoad = l.pathToLoad;
 	trashPath = `${homeDir}.local/share/Trash/files/`;
@@ -255,21 +283,22 @@ external.rename = rename = (fls)  => {
 external.remove = remove = (files) => removeRecursive(files, currentPath);
 external.getProperties = getProperties = (files) => {
 	modal = new l.bcknd.Modal_Main(__dirname+'/external/properties/index.html');
-	fs.lstat(currentPath + files[0], (e, s) =>{
-		/*console.log(s);
+	let data = {};
+	fs.lstat(currentPath + files[0], (e, s) =>{	
 		//Pantalla 1
-		console.log(`nombre: ${files[0]}`);
-		console.log(`ruta: ${currentPath}`)
-		console.log(`tamaño: ${s.size}`);
+		data.name = files[0];
+		data.path = currentPath;
+		data.size = s.size;
 		//Pantalla 2
-		console.log(`última fecha de acceso ${s.atime}`);
-		console.log(`última fecha de modificación en el contendido ${s.mtime}`);
-		console.log(`última fecha de modificación ${s.ctime}`);
-		console.log(`Fecha de creación: ${s.birthtime}`);
+		data.lastView = formatDate(s.atime);
+		data.lastConMod = formatDate(s.mtime);
 		//pantalla 3
-		console.log(`tipo de archivo: ${s.mode.toString(8).slice(0,3)}`);
+		data.type = getFileInfo(s.mode.toString(8))[0];
+		data.permission = getFileInfo(s.mode.toString(8))[1].split("");
+		data.pathFile = currentPath + files[0];
+		/*console.log(`tipo de archivo: ${s.mode.toString(8).slice(0,3)}`);
 		console.log(`permisos: ${s.mode.toString(8).slice(3)}`);*/
-	modal.createModal.call(this, __dirname+'/external/properties/index.html');
+		modal.createModal.call(this, data);
 	});
 };
 //load plugin

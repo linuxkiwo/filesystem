@@ -1,2 +1,133 @@
-*{margin:0;padding:0}body{overflow-x:hidden;font-family:sans-serif}body nav{width:100%;height:10vh;max-height:50px;float:left;display:flex;align-items:center;justify-content:center}body nav ul{display:flex;width:100%;position:relative}body nav ul li{list-style:none;flex-grow:1;text-align:center}body nav ul.cat1::after{content:"";position:absolute;border-bottom:2px solid #63ccff;bottom:0;width:33%;left:0%;transition-property:left;transition-duration:0.75s}body nav ul.cat2::after{content:"";position:absolute;border-bottom:2px solid #63ccff;bottom:0;width:33%;left:33.3%;transition-property:left;transition-duration:0.75s}body nav ul.cat3::after{content:"";position:absolute;border-bottom:2px solid #63ccff;bottom:0;width:33%;left:66.6%;transition-property:left;transition-duration:0.75s}body main{float:left;height:90vh;display:flex;overflow-y:hidden;width:300%}body main section{flex-grow:1;flex-basis:0;display:flex;justify-content:center;align-items:center;flex-direction:column}body main section span{width:80%;display:flex;justify-content:center;align-items:center;margin:2% 0}body main section span p{display:inline-block;flex-grow:1;flex-basis:0;font-weight:700}body main section span input{flex-grow:1;text-align:center}
+* {
+  margin: 0;
+  padding: 0; }
+
+* {
+  margin: 0;
+  padding: 0; }
+
+img {
+  width: 100%; }
+
+body {
+  font-family: sans-serif;
+  overflow: hidden; }
+  body #contentMenu {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px; }
+    body #contentMenu nav {
+      width: 100%;
+      background-color: #fff; }
+      body #contentMenu nav ul {
+        padding: 0;
+        margin: 0; }
+        body #contentMenu nav ul li {
+          padding: 2% 1%;
+          border: 1px solid #006db3;
+          border-width: 1px 0 1px 0;
+          color: #006db3;
+          list-style: none; }
+        body #contentMenu nav ul li:hover {
+          background-color: #006db3;
+          color: #fff; }
+  body .shadow {
+    box-shadow: 5px 5px 5px; }
+  body #modal {
+    position: absolute;
+    width: 20vw;
+    left: 40vh;
+    top: 20vh;
+    max-height: 20vh;
+    background-color: #d3d3d3;
+    overflow: auto; }
+    body #modal .header {
+      color: brown;
+      width: 100%;
+      height: 20%; }
+
+body nav {
+  width: 100%;
+  height: 10vh;
+  max-height: 50px;
+  float: left;
+  display: flex;
+  align-items: center;
+  justify-content: center; }
+  body nav ul {
+    display: flex;
+    width: 100%;
+    position: relative; }
+    body nav ul li {
+      list-style: none;
+      flex-grow: 1;
+      text-align: center;
+      cursor: pointer; }
+  body nav ul.cat1::after {
+    content: "";
+    position: absolute;
+    border-bottom: 2px solid #63ccff;
+    bottom: 0;
+    width: 33%;
+    left: 0%;
+    transition-property: left;
+    transition-duration: 0.5s; }
+  body nav ul.cat2::after {
+    content: "";
+    position: absolute;
+    border-bottom: 2px solid #63ccff;
+    bottom: 0;
+    width: 33%;
+    left: 33.3%;
+    transition-property: left;
+    transition-duration: 0.5s; }
+  body nav ul.cat3::after {
+    content: "";
+    position: absolute;
+    border-bottom: 2px solid #63ccff;
+    bottom: 0;
+    width: 33%;
+    left: 66.6%;
+    transition-property: left;
+    transition-duration: 0.5s; }
+body main {
+  float: left;
+  height: 90vh;
+  display: flex;
+  overflow-y: hidden;
+  width: 300%;
+  transition-property: margin-left;
+  transition-duration: 0.5s; }
+  body main section {
+    flex-grow: 1;
+    flex-basis: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; }
+    body main section span.group {
+      display: block;
+      width: 80%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-grow: 1; }
+      body main section span.group p {
+        display: inline-block;
+        flex-grow: 1;
+        flex-basis: 0;
+        font-weight: 700; }
+      body main section span.group input, body main section span.group span {
+        flex-grow: 1;
+        text-align: center;
+        width: 50%; }
+body main.cat1 {
+  margin: 0; }
+body main.cat2 {
+  margin-left: -100vw; }
+body main.cat3 {
+  margin-left: -200vw; }
+
 /*# sourceMappingURL=style.css.map */

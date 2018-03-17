@@ -1,22 +1,61 @@
 <link rel="stylesheet" href="./css/style.css">
 <nav>
-    <ul class="cat1">
-        <li>Básico</li>
-        <li>Fechas</li>
-        <li>Permisos</li>
-    </ul>
+	<ul class="cat1">
+		<li>Básico</li>
+		<li>Fechas</li>
+		<li>Permisos</li>
+	</ul>
 </nav>
-<main>
-    <section id="basic">
-        <span><p class="category">Nombre</p>
-				<input type="text" value="#{name}"></span>
-        <span><p class="category">Ruta</p>
-				<input type="text" value="#{path}"></span>
-        <span><p class="category">Tamaño</p>
-				<span>#{size}</span></span>
-    </section>
-    <section id="dates"></section>
-    <section id="permission"></section>
+<main class="cat1">
+	<section id="basic">
+		<span class="group">
+			<p class="category">Nombre</p>
+			<input type="text" value="#{name}">
+		</span>
+		<span class="group">
+			<p class="category">Ruta</p>
+			<span>#{path}</span>
+		</span>
+		<span class="group">
+			<p class="category">Tamaño</p>
+			<span>#{size} bites</span>
+		</span>
+		<span class="group">
+			<p class="category">Tipo de archivo</p>
+			<span>#{type}</span>
+		</span>
+
+	</section>
+	<section id="dates">
+		<span class="group">
+			<p class="category">Último acceso</p>
+			<span>#{lastView}</span>
+		</span>
+		<span class="group"> 
+			<p class="category">Última modificación</p>
+			<span>#{lastConMod}</span>
+		</span>
+	</section>
+
+	<section id="permission">
+		<span class="group">
+			<p class="category">Propietario</p>
+			<span class="permission">read</span>
+		</span>
+		<span class="group">
+			<p class="category">Grupo</p>
+			<span class="permission">read</span>
+		</span>
+		<span class="group">
+			<p class="category">Otros</p>
+			<span class="permission">read</span>
+		</span>
+		<span class="group">
+			<input type="number" value="#{permission[0]}">
+			<input type="number" value="#{permission[2]}">
+			<input type="number" value="#{permission[1]}">
+		</span>
+	</section>
 </main>
 </div>
 <script type="text/javascript" src="./js/main.js"></script>
