@@ -63,8 +63,23 @@ body {
 				}
 				input, span {
 					flex-grow:1;
-					text-align:center;
-					width: 50%;
+					flex-basis:0;
+					text-align:center;					
+				}
+				span.permission{					
+					input[type="checkbox"], ruby{
+						float: left;
+						width: 14%;
+						position:relative;
+					}					
+					ruby:after{
+						position: absolute;
+						top:-50px;
+						right:0;
+						width: auto;
+						height: 50px;
+						content: "red"
+					}
 				}
 			}
 		}

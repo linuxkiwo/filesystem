@@ -37,21 +37,40 @@
 	</section>
 	<section id="permission">
 		<span class="group">
+			<p class="category">Value</p>
+			<span class="permission">
+				<ruby>r</ruby>
+				<ruby>w</ruby>
+				<ruby>x</ruby>
+			</span>
+		</span>
+		<span class="group">
 			<p class="category">Propietario</p>
-			<span class="permission">read</span>
+			<span class="permission">
+				<input type="checkbox" value="4">
+				<input type="checkbox" value="2">
+				<input type="checkbox" value="1"></span>
 		</span>
 		<span class="group">
 			<p class="category">Grupo</p>
-			<span class="permission">read</span>
+			<span class="permission">
+				<input type="checkbox" value="4">
+				<input type="checkbox" value="2">
+				<input type="checkbox" value="1"></span>
+		</span>
 		</span>
 		<span class="group">
 			<p class="category">Otros</p>
-			<span class="permission">read</span>
+			<span class="permission">
+				<input type="checkbox" value="4">
+				<input type="checkbox" value="2">
+				<input type="checkbox" value="1"></span>
+		</span>
 		</span>
 		<span class="group">
-			<input type="number" value="#{permission[0]}">
-			<input type="number" value="#{permission[2]}">
-			<input type="number" value="#{permission[1]}">
+			<input type="number" value="#{permission[0]}" max="7" min="0">
+			<input type="number" value="#{permission[2]}" max="7" min="0">
+			<input type="number" value="#{permission[1]}" max="7" min="0">
 		</span>
 		<span class="group"><button id="confirm">Confirmar</button></span>
 	</section>

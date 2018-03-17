@@ -23,19 +23,22 @@ var modalScopeWatch = new Whatch (modalScope.permissionCode);
 /*funciones generales*/
 modalScope.updatePermissions = (toChange = "text") => {
 	let p = 'xwr',
-		v = 0
-		str = ["","",""];
+		v = 0,
+		str = ["","",""],
+		input;
 	for (let g in modalScope.permissionCode){
 		o = modalScope.permissionCode[g];
 		bin = modalScope.decimalToBinary(o);
-		bin = bin.split("").reverse().join("")
+		bin = bin.split("").reverse().join("");		
 		console.log(bin)
+		input = $(modalScope.inputText[v+1]).find('input');
 		for (let i in p){
-			console.log(i)
-			str[v] = (bin[i] === "1") ? p[i]+str[v]  : "_"+str[v];
+			console.log(p.length-i)
+			$(input[p.length-i-1]).prop("checked", (bin[i] === "1"))
+			// str[v] = (bin[i] === "1") ? p[i]+str[v]  : "_"+str[v];
 		}
-		o.text = str[v];
-		$(modalScope.inputText[v]).text(str[v]);
+		$(modalScope.inputPermissions[v]).val(o)
+		// $(modalScope.inputText[v]).text(str[v]);
 		v++;
 	};
 };
@@ -80,6 +83,18 @@ modalScope.changeName = (e) => {
 	comunication.send('prepareToChangeName', null, [modalScope.pathFile, modalScope.nameFile, newName]);
 	modalScope.nameFile = newName;
 }
+modalScope.updatePermissionsCheck = (e) => {
+	let toCheck = $(e.currentTarget).parent().find('input'),
+		key = 0,
+		ind = $(e.currentTarget).parent().index(".permission")-1
+	for (let o of toCheck)		
+		if ($(o).prop("checked"))
+			key += parseInt($(o).val());
+	console.log(ind);
+	modalScope.permissionCode[Object.keys(modalScope.permissionCode)[ind]] = key
+	// $(modalScope.inputPermissions[ind]).val(key)
+
+};
 modalScope.updatePermissionsSys = () => {
 	let p = Object.values(modalScope.permissionCode);
 	comunication.send('changePermissions', null, [$("#path").text(), modalScope.nameFile, "0"+p.join("")]);
@@ -92,7 +107,7 @@ modalScope.inputName
 	.on('keyup', modalScope.updateName)
 	.on('focusout', modalScope.changeName);
 $("#confirm").on('click', modalScope.updatePermissionsSys);
-
+$("input[type=checkbox]").on("change", modalScope.updatePermissionsCheck)
 /*Inicializar al principio*/
 modalScope.updatePermissions();
 for (let o in modalScope.permissionCode)

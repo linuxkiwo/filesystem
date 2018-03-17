@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "sass dev/scss/style.scss:dist/public/css/main.css --style compressed",
+    "build_modal": "sass --watch dev/scss/modal.scss:dist/external/properties/css/style.css --style compressed",
     "init": "electron ."    
   },
   "author": "lucaselvira96@gmail.com",
