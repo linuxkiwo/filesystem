@@ -1,43 +1,59 @@
 const $ = require('jquery');
 const Whatch = require('watcher');
+var EventClient = require('localEvent').Client;
 /*Variables globales*/
 var modalScope = {};
 modalScope.body = $('body');
 modalScope.cat = modalScope.body.find('ul');
 modalScope.cats = modalScope.cat.find('li');
 modalScope.main = modalScope.body.find('main');
+modalScope.inputName = modalScope.main.find("input.name");
 modalScope.inputPermissions = modalScope.main.find("input[type=number]");
 modalScope.inputText = modalScope.main.find(".permission");
-modalScope.pathFile = "#{pathFile}";
+modalScope.pathFile = "#{path}";
+modalScope.nameFile = "#{name}";
 modalScope.permissionCode = {
-    	"property": #{permission[0]},    	
-}
-    	// "groups":  #{permission[1]},    	
-    	// "others" : #{permission[2]}
-
+    	"property": #{permission[0]},
+    	"groups":  #{permission[1]},
+    	"others" : #{permission[2]}
+};
+external = {}
 var modalScopeWatch = new Whatch (modalScope.permissionCode);
 
 /*funciones generales*/
 modalScope.updatePermissions = (toChange = "text") => {
-	console.log("entro")
-	if (toChange === "text"){
-		let p = 'rwx',
-			v = 0
-			str = ["","",""];
-		for (let g in modalScope.permissionCode){				
-			o = modalScope.permissionCode[g]
-			let bin = parseInt(o).toString(2);
-			console.log(bin)
-			for (let i in bin){
-				console.log(`${g}->${bin}->${modalScope.permissionCode[g]}`)
-				console.log(bin[i])
-				str[v] = (bin[i] === "1") ? str[v] + p[i] : str[v] + "_";
-			}
-			o.text = str[v];
-			$(modalScope.inputText[v]).text(str[v]);
-			v++;
+	let p = 'xwr',
+		v = 0
+		str = ["","",""];
+	for (let g in modalScope.permissionCode){
+		o = modalScope.permissionCode[g];
+		bin = modalScope.decimalToBinary(o);
+		bin = bin.split("").reverse().join("")
+		console.log(bin)
+		for (let i in p){
+			console.log(i)
+			str[v] = (bin[i] === "1") ? p[i]+str[v]  : "_"+str[v];
 		}
+		o.text = str[v];
+		$(modalScope.inputText[v]).text(str[v]);
+		v++;
+	};
+};
+modalScope.decimalToBinary = (x) => {
+	let str  ="",
+		bin = 0,
+		t = 0
+	x = parseInt(x)	
+	while (x>0){
+		bin = x%2;		
+		str = bin+str;
+		x = parseInt(x/2);		
 	}
+	t = (parseInt(str.length/8)+1)* 8
+	console.log("t vale: "+t)
+	while (str.length<t)
+		str = '0'+str;
+	return str;
 };
 /*funciones lanzadas por eventos*/
 modalScope.changeCat = (e) => {
@@ -50,15 +66,36 @@ modalScope.updatePermissionsInput = (e)=>{
 	let ind = $(e.currentTarget).index("input[type=number]");
 	let keys = Object.keys(modalScope.permissionCode);
 	modalScope.permissionCode[keys[ind]] = code;
-
 };
+modalScope.updateName = (e) => {
+	if (e.which === 13) // enter
+		return $(e.currentTarget).blur();
+	comunication.send('updateName', null, $(e.currentTarget).val());
+}
+modalScope.changeName = (e) => {
+	let newName = $(modalScope.inputName).val();
+	if (modalScope.nameFile === newName) return null;
+	console.log(modalScope.nameFile) 
+	console.log(newName) 
+	comunication.send('prepareToChangeName', null, [modalScope.pathFile, modalScope.nameFile, newName]);
+	modalScope.nameFile = newName;
+}
+modalScope.updatePermissionsSys = () => {
+	let p = Object.values(modalScope.permissionCode);
+	comunication.send('changePermissions', null, [$("#path").text(), modalScope.nameFile, "0"+p.join("")]);
+};
+
 /*eventos*/
 modalScope.cats.on('click', modalScope.changeCat);
 modalScope.inputPermissions.on('change', modalScope.updatePermissionsInput);
-
+modalScope.inputName
+	.on('keyup', modalScope.updateName)
+	.on('focusout', modalScope.changeName);
+$("#confirm").on('click', modalScope.updatePermissionsSys);
 
 /*Inicializar al principio*/
 modalScope.updatePermissions();
-modalScopeWatch.appendWatch("property", modalScope.updatePermissions);
-// modalScopeWatch.appendWatch("groups", modalScope.updatePermissions);
-// modalScopeWatch.appendWatch("others", modalScope.updatePermissions);
+for (let o in modalScope.permissionCode)
+modalScopeWatch.appendWatch(o, modalScope.updatePermissions);
+var comunication = new EventClient(external);
+// comunication.send('prueba1', null, '');

@@ -196,7 +196,7 @@ var getFileInfo = (x) => {
 	return [type, permission]
 }
 /*metodos globales*/
-var loadFiles, changeDir, move, copy, initialLoad, rename, remove, getProperties;
+var loadFiles, changeDir, move, copy, initialLoad, rename, remove, getProperties, updateName, prepareToChangeName, changePermissions;
 
 external.loadFiles = loadFiles = (dir = '') => {
 	currentPath = (dir !== '') ? (currentPath + dir[0] + '/') : currentPath;
@@ -288,7 +288,7 @@ external.getProperties = getProperties = (files) => {
 		//Pantalla 1
 		data.name = files[0];
 		data.path = currentPath;
-		data.size = s.size;
+		data.size = s.size.toString();		
 		//Pantalla 2
 		data.lastView = formatDate(s.atime);
 		data.lastConMod = formatDate(s.mtime);
@@ -296,11 +296,38 @@ external.getProperties = getProperties = (files) => {
 		data.type = getFileInfo(s.mode.toString(8))[0];
 		data.permission = getFileInfo(s.mode.toString(8))[1].split("");
 		data.pathFile = currentPath + files[0];
-		/*console.log(`tipo de archivo: ${s.mode.toString(8).slice(0,3)}`);
-		console.log(`permisos: ${s.mode.toString(8).slice(3)}`);*/
 		modal.createModal.call(this, data);
 	});
 };
+external.updateName = updateName =(name) => comunication.send(win, 'changeName', name);
+external.prepareToChangeName = prepareToChangeName = (file) => {
+	/*
+	 * Esta función se encarga de preparar el cambio de nombre en el sistema
+	 * file[String]
+	 * file[0] -> contiene la ruta al archivo
+	 * file[1] -> contiene el nombre del archivo viejo
+	 * file[2] -> contiene el nombre nuevo del archivo
+	*/
+	let path = currentPath,
+		fls = [[file[1]],file[2], false],
+		toReturn;	
+	currentPath = file[0];
+	toReturn = rename(fls);
+	currentPath = path;
+	return toReturn;
+};
+external.changePermissions = changePermissions = (file) => {
+	/*
+	 * Esta función se encarga de cambiar los permisos de un archivo
+	 * file[String]
+	 * file[0] -> contiene la ruta al archivo
+	 * file[1] -> contiene el nombre del archivo viejo
+	 * file[2] -> contiene los permisos
+	*/
+	
+	fs.chmod(`${file[0]}${file[1]}`, file[2], (e) => (e)? console.error(e):null);
+
+}
 //load plugin
 l.loadModules(this, this)
 

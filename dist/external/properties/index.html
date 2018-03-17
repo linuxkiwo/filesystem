@@ -10,21 +10,20 @@
 	<section id="basic">
 		<span class="group">
 			<p class="category">Nombre</p>
-			<input type="text" value="#{name}">
+			<input type="text" class="name" value="#{name}">
 		</span>
 		<span class="group">
 			<p class="category">Ruta</p>
-			<span>#{path}</span>
+			<span id="path">#{path}</span>
 		</span>
 		<span class="group">
 			<p class="category">Tamaño</p>
-			<span>#{size} bites</span>
+			<span id="size">#{size} bites</span>
 		</span>
 		<span class="group">
 			<p class="category">Tipo de archivo</p>
-			<span>#{type}</span>
+			<span id="type">#{type}</span>
 		</span>
-
 	</section>
 	<section id="dates">
 		<span class="group">
@@ -36,7 +35,6 @@
 			<span>#{lastConMod}</span>
 		</span>
 	</section>
-
 	<section id="permission">
 		<span class="group">
 			<p class="category">Propietario</p>
@@ -55,6 +53,7 @@
 			<input type="number" value="#{permission[2]}">
 			<input type="number" value="#{permission[1]}">
 		</span>
+		<span class="group"><button id="confirm">Confirmar</button></span>
 	</section>
 </main>
 </div>

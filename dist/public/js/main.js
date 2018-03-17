@@ -49,6 +49,12 @@ external.drawFiles = (args) => {
 		$('.topBar').html(str);
 	}
 };
+external.changeName = (name) => {
+	if (mainScope.selected["file"].length >0) 
+		$(mainScope.selected["file"][0]).find('p').text(name)
+	else if (mainScope.selected["folder"].length >0) 
+		$(mainScope.selected["folder"][0]).find('p').text(name)
+};
 /*metodos locales*/
 mainScope.unselectOne = (name) => {
 	/*
