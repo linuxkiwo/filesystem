@@ -19,6 +19,8 @@ A continuación se detallan una serie de instrucciones para el uso de la aplicac
 - Sistema de drag and drop:
 	- **Copiar**: Mantener control mientras arrastras
 	- **Cortar**: Arrastrar sin soltar
+- Menú de propiedades:
+	- Se representa con texto las distintas acciones posibles
 
 ### Sistema de navegación
 - Para poder moverte por las distintas aplicaciones es necesario hacer doble click en la carpeta en cuestión. Se puede navegar a través de las carpetas que están renderizadas o con la barra de navegación superior que permitirá retroceder a la carpeta que se precise estando dentro de la lista.
@@ -28,6 +30,19 @@ A continuación se detallan una serie de instrucciones para el uso de la aplicac
 	- **comando**: f2.
 - Se puede realizar mediante una ventana modal:
 	- **acción**: botón derecho > cambiar nombre.
+
+### Mostrar el menú de propiedades
+- Se puede realizar mediante atajos de teclado:
+	- **comando**: control + i.
+- Se puede realizar mediante una ventana modal:
+	- **acción**: botón derecho > propiedades.
+- Este menú se divide en tres subsecciones:
+	- *Básico* Incluye El nombre del archivo, la ruta a este y el tamaño
+	- *Fechas* Inlcuye las fechas básicas de un inodo (modificación, acceso y y creación)
+	- *Permisos* Muestra los persmisos de un archivo o carpeta
+- Desde este menú se pueden realizar una serie de acciones como:
+	- Cambiar el nombre en el campo correspondiente
+	- Cambiar los persmisos. Se muestran dos niveles posibles de interacción para realizar esta acción.
 
 ***Anotaciones***:
 
