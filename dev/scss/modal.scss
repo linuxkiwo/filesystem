@@ -61,24 +61,36 @@ body {
 					flex-basis:0;
 					font-weight: 700;
 				}
+				p.data {
+					font-weight: 100;
+				}
 				input, span {
 					flex-grow:1;
 					flex-basis:0;
 					text-align:center;					
 				}
-				span.permission{					
-					input[type="checkbox"], ruby{
+				span.permission{
+					input[type="checkbox"], ruby, select{
 						float: left;
 						width: 14%;
 						position:relative;
 					}					
 					ruby:after{
-						position: absolute;
-						top:-50px;
-						right:0;
+						visibility:hidden;
+					    position: absolute;
+					    top: -10px;
+					    left: 0;
+					    width: 50px;
+					    content: "red";
+					    background-color: $color1;
+					    color: white;
+					    box-shadow: 5px 5px 5px;
+					}
+					ruby:hover:after{
+						visibility: visible;
+					}
+					select {
 						width: auto;
-						height: 50px;
-						content: "red"
 					}
 				}
 			}

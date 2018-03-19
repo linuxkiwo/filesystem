@@ -99,6 +99,8 @@ mainScope.evalKeyMap = () =>{
 		mainScope.remove();
 	else if (mainScope.mapKey[46]) //press supr
 		mainScope.sentToTrush();
+	else if (mainScope.mapKey[17] && mainScope.mapKey[73]) // press cntrl + i
+		mainScope.askForProperties();
 };
 mainScope.getName = (src) => {
 	/*

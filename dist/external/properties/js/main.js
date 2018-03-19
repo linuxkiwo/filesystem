@@ -77,9 +77,7 @@ modalScope.updateName = (e) => {
 }
 modalScope.changeName = (e) => {
 	let newName = $(modalScope.inputName).val();
-	if (modalScope.nameFile === newName) return null;
-	console.log(modalScope.nameFile) 
-	console.log(newName) 
+	if (modalScope.nameFile === newName) return null; 
 	comunication.send('prepareToChangeName', null, [modalScope.pathFile, modalScope.nameFile, newName]);
 	modalScope.nameFile = newName;
 }
@@ -90,10 +88,8 @@ modalScope.updatePermissionsCheck = (e) => {
 	for (let o of toCheck)		
 		if ($(o).prop("checked"))
 			key += parseInt($(o).val());
-	console.log(ind);
-	modalScope.permissionCode[Object.keys(modalScope.permissionCode)[ind]] = key
-	// $(modalScope.inputPermissions[ind]).val(key)
-
+	
+	modalScope.permissionCode[Object.keys(modalScope.permissionCode)[ind]] = key;
 };
 modalScope.updatePermissionsSys = () => {
 	let p = Object.values(modalScope.permissionCode);

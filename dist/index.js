@@ -7,8 +7,9 @@ const url = require('url');
 const { exec } = require('child_process');
 
 const EventServer = require('../../commonModules/localEvent').Server;
-
 const LoadApp = require('loadapp');
+const CSV = require('csv_to_json');
+
 /*constantes globales*/
 const ConfigPath = '../../commonModules/config.json';
 const ProgramName = "fileSystem";
@@ -26,7 +27,9 @@ var win,
 	pathToLoad = l.pathToLoad,
 	homeDir,
 	trashPath = '',
-	modal;
+	modal,
+	csv;
+
 
 
 
@@ -34,6 +37,7 @@ var win,
 var external = this.external = {};
 this.app = app;
 this.BrowserWindow = BrowserWindow;
+
 /*metodos locales*/
 
 var createWin = () => {
@@ -49,7 +53,6 @@ var createWin = () => {
 		win = null
 	});	
 };
-
 var closeWin = () => app.quit();
 
 var copyRecursive = (files, src, dst) => {
@@ -194,8 +197,45 @@ var getFileInfo = (x) => {
 	})(x.slice(0, -3));;
 	permission = x.slice(-3);
 	return [type, permission]
-}
+};
+var readcsv = (code) => {
+	/*
+	 * Función encargada de leer los archivos en los que se indican
+	 * los usuarios con sus códigos y los grupos con sus códigos
+	 * code:[Int]
+	 * code[0] -> Id del user al que pertence el archivo
+	 * code[1] -> Id del grupo al que pertence el archivo
+	*/
+	csv = new CSV({delimeter: ":"});
+	var files = ['passwd', 'group', 'passwd', 'group'],
+		search = ['userName', 'groupName', 'userName', 'groupName'],
+		matching = ['userid', 'groupid', 'userid', 'groupid'],
+		toReturn = [],
+		objective = {};
+	for (let i in code){
+		objective = {};
+		let toSearch = code[i].toString();
+		objective[matching[i]] = toSearch
+		let content = fs.readFileSync(`/home/lucas/Documentos/universidad/TFG/electron/DE_v2/commonModules/${files[i]}`, 'utf-8'),
+			column = (i %2== 0) ? ['userName', 'password', 'userid', 'groupid', 'userid_info', 'homedirectory', 'shell'] :  ['groupName', 'password', 'groupid', 'grouplist'],
+			obj = csv.parserObj(content, column),
+			match = csv.search([search[i]], objective, obj);
+		if (match.length === 1)
+			toReturn.push(match[0][search[i]]);
+		else{
+			let arr = [];
+
+			for (let m in match){
+				arr.push(match[m][search[i]]);
+			}
+			toReturn.push(arr);
+		}
+	 }
+	 return toReturn;
+};
+
 /*metodos globales*/
+
 var loadFiles, changeDir, move, copy, initialLoad, rename, remove, getProperties, updateName, prepareToChangeName, changePermissions;
 
 external.loadFiles = loadFiles = (dir = '') => {
@@ -281,21 +321,28 @@ external.rename = rename = (fls)  => {
 	return [loadFiles()[0]];
 };
 external.remove = remove = (files) => removeRecursive(files, currentPath);
+
 external.getProperties = getProperties = (files) => {
 	modal = new l.bcknd.Modal_Main(__dirname+'/external/properties/index.html');
 	let data = {};
 	fs.lstat(currentPath + files[0], (e, s) =>{	
 		//Pantalla 1
+		let ownGroup = readcsv([s.uid, s.gid, '\\d{4}','\\d{4}']);
 		data.name = files[0];
 		data.path = currentPath;
 		data.size = s.size.toString();		
 		//Pantalla 2
 		data.lastView = formatDate(s.atime);
 		data.lastConMod = formatDate(s.mtime);
+		data.lastConMod = formatDate(s.birthtime);
 		//pantalla 3
 		data.type = getFileInfo(s.mode.toString(8))[0];
 		data.permission = getFileInfo(s.mode.toString(8))[1].split("");
 		data.pathFile = currentPath + files[0];
+		data.own = ownGroup[0];
+		data.group = ownGroup[1];
+		data.owns = ownGroup[2];
+		data.groups = ownGroup[3];
 		modal.createModal.call(this, data);
 	});
 };
@@ -326,8 +373,7 @@ external.changePermissions = changePermissions = (file) => {
 	*/
 	
 	fs.chmod(`${file[0]}${file[1]}`, file[2], (e) => (e)? console.error(e):null);
-
-}
+};
 //load plugin
 l.loadModules(this, this)
 

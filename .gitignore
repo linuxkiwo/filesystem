@@ -10,3 +10,5 @@ prueba*
 ./.buffer
 /node_modules/selectfile/index.css.map
 /dist/public/html/
+regex.*
+dist/external/properties/css/style.css.map
