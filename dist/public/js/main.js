@@ -37,7 +37,6 @@ var external = {};
 
 external.drawFiles = (args) => {
 	/*Lista los archivos y carpetas que hay en ese direcorio*/	
-	console.log(args)
 	let str = args[0];
 	$('main ul').html(str);
 	/*Cambia el menú de navegación */
@@ -46,7 +45,6 @@ external.drawFiles = (args) => {
 		let path = args[1];
 		mainScope.currentPath = "/"+path.join("/");
 		mainScope.currentPath = (mainScope.currentPath.search(/^\//) !== -1) ? mainScope.currentPath + "/" :mainScope.currentPath 
-		console.log(mainScope.currentPath)
 		for (var i=2; i< path.length;i++)
 			str +=`<li class="track">${path[i]}</li>`;
 		$('.topBar').html(str);
@@ -128,8 +126,6 @@ mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	*/
 	let toCopy = [],acction = (mainScope.isCopping) ? "copy" : "move";
 	toCopy = (!Array.isArray(src)) ? mainScope.getName(src) : src;
-	console.log(toCopy)
-	console.log(dst)
 	comunication.send(acction, 'drawFiles', [toCopy, dst]);
 };
 mainScope.prepareToCopy = () => {
@@ -151,7 +147,7 @@ mainScope.sentToTrush = () => {
 };
 mainScope.remove = () => {
 	mainScope.prepareToCut();
-	let toDel = mainScope.getName(mainScope.toCopy);
+	let toDel = mainScope.toCopy;
 	comunication.send('remove', 'drawFiles', toDel);	
 };
 mainScope.askForProperties = () => {

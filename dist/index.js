@@ -160,15 +160,18 @@ var separateName = (name) => {
 var removeRecursive = (files, path) => {
 	/*
 	 * Función encargada de borrar la lista de archivos que se ha indicado
+	 * files: [String] Lista con los nombres completos de los archivos que se desean borrar
+	 *
 	*/
 	for (let f of files){
-		if (fs.lstatSync(`${path}${f}`).isFile())
-			fs.unlink(`${path}${f}`, (e)=> (e) ? console.error(e) : null);
-		else if (fs.lstatSync(`${path}${f}`).isDirectory()){
-			removeRecursive(fs.readdirSync(`${path}${f}`), `${path}${f}/`);
-			fs.rmdir(`${path}${f}`, (e) => (e.errno ===-39 ) ? removeRecursive([f],`${path}`): console.error(e));
+		if (fs.lstatSync(f).isFile())
+			fs.unlink(f, (e)=> (e) ? console.error(e) : null);
+		else if (fs.lstatSync(f).isDirectory()){
+			removeRecursive(fs.readdirSync(f));
+			fs.rmdir(f, (e) => (e.errno ===-39 ) ? removeRecursive([f]): console.error(e));
 		}
 	}
+	return [loadFiles()[0]];
 };
 var formatDate = (date) =>{
 	let d = new Date(date),
@@ -331,7 +334,7 @@ external.rename = rename = (fls)  => {
 	}
 	return [loadFiles()[0]];
 };
-external.remove = remove = (files) => removeRecursive(files, currentPath);
+external.remove = remove = (files) => removeRecursive(files);
 
 external.getProperties = getProperties = (files) => {
 	modal = new l.bcknd.Modal_Main(__dirname+'/external/properties/index.html');
