@@ -30,9 +30,6 @@ var win,
 	modal,
 	csv;
 
-
-
-
 /*Declaración de las funciones globales*/
 var external = this.external = {};
 this.app = app;
@@ -63,20 +60,31 @@ var copyRecursive = (files, src, dst) => {
 	 * dst: String -> La ruta de la carpeta en la que se deben copiar
 	*/
 	let name = '';
+	
 	for (let f of files){
-		if (fs.lstatSync(`${src}${f}`).isFile()){
-			name = renameOneFile(`${dst}`, f);			
-			fs.createReadStream(`${src}${f}`).pipe(fs.createWriteStream(`${name}`));
+		if (fs.lstatSync(f).isFile()){
+			name = renameOneFile(`${dst}`, f.split("/").slice(-1)[0]);			
+			fs.createReadStream(f).pipe(fs.createWriteStream(`${name}`));
 		}
-		else if (fs.lstatSync(`${src}${f}`).isDirectory()){			
-			fs.mkdir(`${dst}${f}`, '0755', (e)=>{
+		else if (fs.lstatSync(f).isDirectory()){			
+			fs.mkdir(`${dst}${f}`, '0644', (e)=>{
 				if (e) return console.error(e);
-				copyRecursive(fs.readdirSync(`${src}${f}/`), `${src}${f}/`, `${dst}${f}/`);
+				copyRecursive(fs.readdirSync(f), `${src}${f}/`, `${dst}${f}/`);
 			});
 		}
 	}
 };
 var renameOneFile = (path, newName) => {
+	/*
+	 * Función encargada de devolver el nombre del archivo en el nuevo directorio,
+	 * modificandolo en caso de encontrar un nombre igual en el directorio al que se transpasa,
+	 * evitando la perdida de ficheros
+	 * path: String Donde se va a crear el nuevo archivo
+	 * newName: String | Array Nombre del archivo a copair. Si es un array, quiere decir que
+	 * ya se ha obtenido su extensión y su nombre por separado, por lo que no será necesario repetir
+	 * esta operación
+	 *
+	*/
 	let ext, name, cond = true, reg = /([\wÁÉÍÓÚáéíóúÄËÏÖÜäëïöüÀÈÌÒÙàèìòù]*[\s\.]?)*_(\d*)/;	
 	let i = 0;
 	while(cond && i<10){		
@@ -90,7 +98,7 @@ var renameOneFile = (path, newName) => {
 		}
 		newName = (typeof(newName) === 'string') ? separateName(newName) : newName;
 		name = newName[0];
-		ext = newName[1];				
+		ext = newName[1];
 		if (!reg.test(name)){
 			newName = `${name}_1${ext}`;			
 		}
@@ -271,14 +279,16 @@ external.move = move = (paths) => {
 		dst = (paths[1] !== 'trash') ? paths[1] : trashPath,
 		name = '';
 	for (let i = 0; i<files.length; i++){
-		name = renameOneFile(dst, files[i]);
-		fs.rename(`${currentPath}${files[i]}`, name, (err) => {if (err) console.error(err);});
+		name = renameOneFile(dst, files[i].split("/").slice(-1)[0]);
+		fs.rename(files[i], name, (err) => {if (err) console.error(err);});
 	}
+	return [loadFiles()[0]];
 };
 external.copy = copy = (files) => {
-	let dst = currentPath + files[1]+'/',
+	let dst = files[1],
 		src = files[0];		
 	copyRecursive(src, currentPath, dst);
+	return [loadFiles()[0]];
 };
 external.initialLoad = initialLoad = (option) => {
 	homeDir = (!homeDir) ? l.homeDir : homeDir;
@@ -291,6 +301,7 @@ external.initialLoad = initialLoad = (option) => {
 		default:
 			currentPath = homeDir;
 	}	
+	console.log(currentPath)
 	return [loadFiles()[0], currentPath.split("/").slice(1)];
 };
 external.rename = rename = (fls)  => {
@@ -346,7 +357,9 @@ external.getProperties = getProperties = (files) => {
 		modal.createModal.call(this, data);
 	});
 };
+
 external.updateName = updateName =(name) => comunication.send(win, 'changeName', name);
+
 external.prepareToChangeName = prepareToChangeName = (file) => {
 	/*
 	 * Esta función se encarga de preparar el cambio de nombre en el sistema
@@ -363,6 +376,7 @@ external.prepareToChangeName = prepareToChangeName = (file) => {
 	currentPath = path;
 	return toReturn;
 };
+
 external.changePermissions = changePermissions = (file) => {
 	/*
 	 * Esta función se encarga de cambiar los permisos de un archivo

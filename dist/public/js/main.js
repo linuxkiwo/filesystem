@@ -37,6 +37,7 @@ var external = {};
 
 external.drawFiles = (args) => {
 	/*Lista los archivos y carpetas que hay en ese direcorio*/	
+	console.log(args)
 	let str = args[0];
 	$('main ul').html(str);
 	/*Cambia el menú de navegación */
@@ -44,6 +45,8 @@ external.drawFiles = (args) => {
 		str = '<li class="track">Carpeta personal</li>';
 		let path = args[1];
 		mainScope.currentPath = "/"+path.join("/");
+		mainScope.currentPath = (mainScope.currentPath.search(/^\//) !== -1) ? mainScope.currentPath + "/" :mainScope.currentPath 
+		console.log(mainScope.currentPath)
 		for (var i=2; i< path.length;i++)
 			str +=`<li class="track">${path[i]}</li>`;
 		$('.topBar').html(str);
@@ -109,36 +112,37 @@ mainScope.getName = (src) => {
 	 * src:Object
 	 * devuelve el array
 	*/
+	
 	let toCopy = [];
 	for (let f in src)
 		for (let i = 0; i<src[f].length; i++)
-			toCopy.push($(src[f][i]).find("p").html());
+			toCopy.push(mainScope.currentPath+$(src[f][i]).find("p").html());
 	return toCopy;
 };
 mainScope.sentTo = (dst, src = mainScope.selected)=> {
 	/*
-	 *Esta función se encarga de:
-	 *Si ya hay algo seleccionado, la carpeta en la que se hace click es
-	 *el destino de la primera.
-	 *Si la tecla cntrl está pulsada, se copian dentro de la carpeta,
-	 *Si está sin pulsar, se mueven
+	 * Esta función se encarga de preparar para mover o copiar los archivos
+	 * dst:String Ruta de la carpeta que contendrá lo que se va a copiar o mover
+	 * src:[String] Rutas de los archivs que se quieren mover
+	 * src:Object Nombres de los archivos y carpetas que se van a mover (Deber tratarse sólo la primera opción)
 	*/
 	let toCopy = [],acction = (mainScope.isCopping) ? "copy" : "move";
-	toCopy = mainScope.getName(src)
-	comunication.send(acction, null, [toCopy, dst]);
-	if (acction === "move")
-		mainScope.deleteRenderMove(src)
+	toCopy = (!Array.isArray(src)) ? mainScope.getName(src) : src;
+	console.log(toCopy)
+	console.log(dst)
+	comunication.send(acction, 'drawFiles', [toCopy, dst]);
 };
 mainScope.prepareToCopy = () => {
-	mainScope.toCopy = Object.assign({}, mainScope.selected);
+	mainScope.toCopy = mainScope.getName(mainScope.selected)
 	mainScope.isCopping = true;
 };
 mainScope.prepareToCut = () => {
-	mainScope.toCopy = Object.assign({}, mainScope.selected);
+	mainScope.toCopy = mainScope.getName(mainScope.selected)
 	mainScope.isCopping = false;
 };
 mainScope.paste = () => {
-	let dst = $(mainScope.selected['folder'][0]).find("p").html();
+	let dst = mainScope.currentPath
+	if (mainScope.selected['folder'][0]) dst += $(mainScope.selected['folder'][0]).find("p").html()+"/";
 	mainScope.sentTo(dst, mainScope.toCopy);
 };
 mainScope.sentToTrush = () => {
@@ -238,7 +242,7 @@ mainScope.endDrop = (e) =>{
 			if ($(e.currentTarget).index("ul li") === $(mainScope.selected[f][i]).index("ul li"))
 				return;
 	if (mainScope.ctrlPress) mainScope.isCopping = true;
-	mainScope.sentTo($(e.currentTarget).find("p").html())
+	mainScope.sentTo(mainScope.currentPath+ $(e.currentTarget).find("p").html()+"/")
 };
 mainScope.unselect = () => {
 	/*
