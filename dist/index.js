@@ -304,7 +304,6 @@ external.initialLoad = initialLoad = (option) => {
 		default:
 			currentPath = homeDir;
 	}	
-	console.log(currentPath)
 	return [loadFiles()[0], currentPath.split("/").slice(1)];
 };
 external.rename = rename = (fls)  => {
@@ -339,10 +338,11 @@ external.remove = remove = (files) => removeRecursive(files);
 external.getProperties = getProperties = (files) => {
 	modal = new l.bcknd.Modal_Main(__dirname+'/external/properties/index.html');
 	let data = {};
-	fs.lstat(currentPath + files[0], (e, s) =>{	
+	fs.lstat(files[0], (e, s) =>{	
+		if (e) return console.log(e)
 		//Pantalla 1
 		let ownGroup = readcsv([s.uid, s.gid, '\\d{4}','\\d{4}']);
-		data.name = files[0];
+		data.name = files[0].split("/").slice(-1)[0];
 		data.path = currentPath;
 		data.size = s.size.toString();		
 		//Pantalla 2
@@ -384,12 +384,12 @@ external.changePermissions = changePermissions = (file) => {
 	/*
 	 * Esta función se encarga de cambiar los permisos de un archivo
 	 * file[String]
-	 * file[0] -> contiene la ruta al archivo
+-    * file[0] -> contiene la ruta al archivo
 	 * file[1] -> contiene el nombre del archivo viejo
 	 * file[2] -> contiene los permisos
 	*/
-	
-	fs.chmod(`${file[0]}${file[1]}`, file[2], (e) => (e)? console.error(e):null);
+	console.log(file);
+	fs.chmod(`${file[0]}${file[1]}`,file[2] , (e) => (e)? console.error(e):null);
 };
 //load plugin
 l.loadModules(this, this)
